@@ -1,0 +1,1853 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown 本地浏览器</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f4;
+        --panel: #ffffff;
+        --ink: #1f2933;
+        --muted: #68737d;
+        --line: #d9ded8;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+        --accent-soft: #e0f2ef;
+        --code-bg: #f0f3f2;
+        --warn: #b45309;
+        --danger: #b42318;
+        --danger-soft: #fef3f2;
+        --sidebar-width: 360px;
+        --recent-row-height: 58px;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: minmax(280px, var(--sidebar-width)) 6px minmax(0, 1fr);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        background: var(--panel);
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .resizer {
+        background: linear-gradient(to right, transparent, var(--line), transparent);
+        cursor: col-resize;
+        position: relative;
+      }
+
+      .resizer::after {
+        content: "";
+        position: absolute;
+        inset: 0 -5px;
+      }
+
+      .resizer:hover,
+      .app.resizing .resizer {
+        background: var(--accent);
+      }
+
+      .app.resizing {
+        cursor: col-resize;
+        user-select: none;
+      }
+
+      .sidebar-header {
+        padding: 18px;
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        gap: 12px;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.25;
+        font-weight: 700;
+      }
+
+      .choose-button {
+        border: 0;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        padding: 10px 12px;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .choose-button:hover {
+        background: var(--accent-strong);
+      }
+
+      .path {
+        color: var(--muted);
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .search {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        outline: none;
+        background: #fbfcfb;
+        color: var(--ink);
+      }
+
+      .search:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      .nav {
+        overflow: auto;
+        padding: 14px;
+        display: grid;
+        gap: 18px;
+        min-height: 0;
+      }
+
+      .nav-section {
+        display: grid;
+        gap: 8px;
+      }
+
+      .section-heading {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .file-list,
+      .tree {
+        display: grid;
+        gap: 3px;
+      }
+
+      .recent-list {
+        max-height: calc(var(--recent-row-height) * 10 + 27px);
+        overflow-y: auto;
+        padding-right: 3px;
+        overscroll-behavior: contain;
+      }
+
+      .file-button {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        border-radius: 7px;
+        padding: 8px 9px;
+        text-align: left;
+        cursor: pointer;
+        display: grid;
+        gap: 2px;
+        position: relative;
+      }
+
+      .recent-list .file-button {
+        min-height: var(--recent-row-height);
+      }
+
+      .file-button:hover,
+      .file-button.active {
+        background: var(--accent-soft);
+      }
+
+      .file-button.show-tooltip:hover::after {
+        content: attr(data-path);
+        position: absolute;
+        left: 8px;
+        top: calc(100% + 6px);
+        z-index: 5;
+        max-width: min(520px, 80vw);
+        background: #1f2933;
+        color: #fff;
+        border-radius: 7px;
+        padding: 8px 10px;
+        font-size: 12px;
+        line-height: 1.45;
+        box-shadow: 0 10px 24px rgba(31, 41, 51, 0.22);
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .file-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .file-meta {
+        color: var(--muted);
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      details {
+        min-width: 0;
+      }
+
+      summary {
+        color: var(--ink);
+        cursor: pointer;
+        border-radius: 7px;
+        padding: 7px 9px;
+        font-size: 14px;
+        font-weight: 700;
+        list-style: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      summary::-webkit-details-marker {
+        display: none;
+      }
+
+      summary::before {
+        content: "▸";
+        color: var(--muted);
+        margin-right: 6px;
+      }
+
+      details[open] > summary::before {
+        content: "▾";
+      }
+
+      summary:hover {
+        background: #eef1ed;
+      }
+
+      .tree-children {
+        margin-left: 12px;
+        padding-left: 10px;
+        border-left: 1px solid var(--line);
+        display: grid;
+        gap: 3px;
+      }
+
+      .viewer {
+        min-width: 0;
+        min-height: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .viewer-header {
+        background: rgba(246, 247, 244, 0.92);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+        padding: 16px 26px;
+        min-height: 76px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 18px;
+        z-index: 1;
+        flex: 0 0 auto;
+      }
+
+      .doc-title {
+        min-width: 0;
+      }
+
+      .doc-title strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 18px;
+      }
+
+      .doc-title span {
+        color: var(--muted);
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .viewer-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-self: end;
+      }
+
+      .view-switch {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: flex;
+        overflow: hidden;
+        background: var(--panel);
+        justify-self: center;
+      }
+
+      .view-button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 7px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .view-button.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .view-button.error {
+        background: var(--danger-soft);
+        color: var(--danger);
+        font-weight: 700;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .view-button.error::before {
+        content: "!";
+        display: inline-grid;
+        place-items: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 11px;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+
+      .view-button.error:hover::after {
+        content: attr(data-error);
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 6;
+        min-width: 220px;
+        max-width: min(420px, 60vw);
+        border: 1px solid rgba(180, 35, 24, 0.2);
+        border-radius: 8px;
+        background: rgba(254, 243, 242, 0.98);
+        box-shadow: 0 12px 28px rgba(31, 41, 51, 0.14);
+        color: var(--danger);
+        padding: 10px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.45;
+        text-align: left;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .view-button:disabled,
+      .jump-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .jump-button {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--panel);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 7px 9px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .jump-button:hover {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+        background: var(--accent-soft);
+      }
+
+      .content-shell {
+        width: 100%;
+        flex: 1;
+        padding: 0;
+        min-height: 0;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
+      }
+
+      .empty {
+        min-height: calc(100vh - 76px);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        color: var(--muted);
+        padding: 24px;
+      }
+
+      .empty-card {
+        display: grid;
+        gap: 12px;
+        max-width: 430px;
+      }
+
+      .empty-card h2 {
+        color: var(--ink);
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .empty-card p {
+        margin: 0;
+        line-height: 1.7;
+      }
+
+      .markdown-body {
+        background: var(--panel);
+        min-height: calc(100vh - 76px);
+        padding: 34px 42px 64px;
+        line-height: 1.75;
+        overflow-wrap: anywhere;
+      }
+
+      .viewer.outline-visible .markdown-body {
+        padding-right: calc(min(280px, 28vw) + 84px);
+      }
+
+      .doc-outline {
+        position: absolute;
+        top: 92px;
+        right: 18px;
+        z-index: 2;
+        width: min(280px, 28vw);
+        max-height: min(58vh, 520px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 12px 28px rgba(31, 41, 51, 0.09);
+        padding: 12px;
+        display: none;
+      }
+
+      .doc-outline.visible {
+        display: block;
+      }
+
+      .outline-title {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .outline-list {
+        display: grid;
+        gap: 3px;
+      }
+
+      .outline-link {
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        display: block;
+        font-size: 12px;
+        line-height: 1.35;
+        padding: 6px 7px;
+        text-align: left;
+        width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }
+
+      .outline-link:hover {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+      }
+
+      .outline-level-2 {
+        padding-left: 17px;
+      }
+
+      .outline-level-3,
+      .outline-level-4,
+      .outline-level-5,
+      .outline-level-6 {
+        padding-left: 27px;
+      }
+
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        place-items: center;
+        background: rgba(246, 247, 244, 0.72);
+        backdrop-filter: blur(4px);
+      }
+
+      .toast {
+        position: absolute;
+        right: 18px;
+        bottom: 74px;
+        z-index: 4;
+        min-width: 280px;
+        max-width: min(420px, calc(100% - 36px));
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 16px 40px rgba(31, 41, 51, 0.14);
+        padding: 12px;
+        display: none;
+        gap: 10px;
+      }
+
+      .toast.visible {
+        display: grid;
+      }
+
+      .toast.error {
+        border-color: rgba(180, 35, 24, 0.25);
+        background: rgba(254, 243, 242, 0.98);
+      }
+
+      .toast.error .toast-message {
+        color: var(--danger);
+      }
+
+      .toast-message {
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .toast-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .bottom-jump {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        z-index: 3;
+        box-shadow: 0 10px 24px rgba(31, 41, 51, 0.13);
+      }
+
+      .app.loading .loading-overlay {
+        display: grid;
+      }
+
+      .loading-panel {
+        min-width: 240px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 20px 22px;
+        box-shadow: 0 18px 54px rgba(31, 41, 51, 0.14);
+        display: grid;
+        justify-items: center;
+        gap: 12px;
+      }
+
+      .spinner {
+        width: 30px;
+        height: 30px;
+        border: 3px solid var(--accent-soft);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      .loading-text {
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .markdown-body h1,
+      .markdown-body h2,
+      .markdown-body h3,
+      .markdown-body h4,
+      .markdown-body h5,
+      .markdown-body h6 {
+        margin: 1.6em 0 0.6em;
+        line-height: 1.25;
+      }
+
+      .markdown-body h1:first-child,
+      .markdown-body h2:first-child,
+      .markdown-body h3:first-child {
+        margin-top: 0;
+      }
+
+      .markdown-body h1 {
+        font-size: 32px;
+      }
+
+      .markdown-body h2 {
+        font-size: 24px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 8px;
+      }
+
+      .markdown-body h3 {
+        font-size: 19px;
+      }
+
+      .ai-body {
+        display: grid;
+        gap: 18px;
+      }
+
+      .ai-hero {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 18px;
+      }
+
+      .ai-hero h1 {
+        margin: 0 0 10px;
+      }
+
+      .ai-summary {
+        color: #40505c;
+        font-size: 17px;
+        margin: 0;
+      }
+
+      .ai-section {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        background: rgba(246, 247, 244, 0.58);
+      }
+
+      .ai-section h2 {
+        border-bottom: 0;
+        margin-top: 0;
+        padding-bottom: 0;
+      }
+
+      .ai-pill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .ai-pill-list li {
+        background: var(--accent-soft);
+        border-radius: 7px;
+        padding: 8px 10px;
+      }
+
+      .ai-empty {
+        color: var(--muted);
+      }
+
+      .markdown-body p,
+      .markdown-body ul,
+      .markdown-body ol,
+      .markdown-body blockquote,
+      .markdown-body pre,
+      .markdown-body table {
+        margin: 0 0 1.05em;
+      }
+
+      .markdown-body a {
+        color: var(--accent-strong);
+      }
+
+      .markdown-body code {
+        background: var(--code-bg);
+        border-radius: 5px;
+        padding: 2px 5px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.9em;
+      }
+
+      .markdown-body pre {
+        background: #17212b;
+        color: #eef7f4;
+        border-radius: 8px;
+        padding: 16px;
+        overflow: auto;
+      }
+
+      .markdown-body pre code {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+      }
+
+      .markdown-body blockquote {
+        border-left: 4px solid var(--accent);
+        color: #46515c;
+        padding: 3px 0 3px 14px;
+      }
+
+      .markdown-body img {
+        max-width: 100%;
+        border-radius: 8px;
+      }
+
+      .markdown-body table {
+        width: 100%;
+        border-collapse: collapse;
+        display: block;
+        overflow-x: auto;
+      }
+
+      .markdown-body th,
+      .markdown-body td {
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+      }
+
+      .markdown-body th {
+        background: #eef1ed;
+      }
+
+      .notice {
+        color: var(--warn);
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .resizer {
+          display: none;
+        }
+
+        .sidebar {
+          max-height: 48vh;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .viewer-header {
+          position: static;
+          padding: 14px 18px;
+          align-items: flex-start;
+          grid-template-columns: 1fr;
+        }
+
+        .viewer-tools {
+          flex-wrap: wrap;
+          justify-self: start;
+        }
+
+        .view-switch {
+          justify-self: start;
+        }
+
+        .content-shell {
+          padding: 0;
+        }
+
+        .markdown-body {
+          min-height: auto;
+          padding: 22px;
+        }
+
+        .doc-outline {
+          display: none !important;
+        }
+
+        .bottom-jump {
+          right: 14px;
+          bottom: 14px;
+        }
+
+        .toast {
+          left: 14px;
+          right: 14px;
+          bottom: 62px;
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="title-row">
+            <h1>Markdown 浏览</h1>
+          </div>
+          <div class="path" id="currentPath">尚未选择目录</div>
+          <button class="choose-button" id="chooseDir" type="button">选择本地目录</button>
+          <input class="search" id="search" type="search" placeholder="筛选 md 文件" />
+        </div>
+        <nav class="nav" aria-label="Markdown 文件导航">
+          <section class="nav-section">
+            <div class="section-heading">
+              <span>最近更新</span>
+              <span id="recentCount">0</span>
+            </div>
+            <div class="file-list recent-list" id="recentList"></div>
+          </section>
+          <section class="nav-section">
+            <div class="section-heading">
+              <span>目录结构</span>
+              <span id="treeCount">0</span>
+            </div>
+            <div class="tree" id="treeList"></div>
+          </section>
+        </nav>
+      </aside>
+
+      <div class="resizer" id="resizer" role="separator" aria-label="调整目录栏宽度"></div>
+
+      <section class="viewer">
+        <header class="viewer-header">
+          <div class="doc-title">
+            <strong id="docName">未打开文件</strong>
+            <span id="docPath">选择左侧 Markdown 文件后在这里预览</span>
+          </div>
+          <div class="view-switch" aria-label="预览模式">
+            <button class="view-button active" id="rawView" type="button">原文</button>
+            <button class="view-button" id="aiView" type="button">AI 阅读版</button>
+          </div>
+          <div class="viewer-tools">
+            <button class="jump-button" id="scrollTop" type="button">↑ 顶部</button>
+            <button class="jump-button" id="regenerateAi" type="button" style="display: none">重新生成</button>
+            <div class="status" id="status">HTML 预览</div>
+          </div>
+        </header>
+        <button class="jump-button bottom-jump" id="scrollBottom" type="button">↓ 底部</button>
+        <div class="toast" id="toast">
+          <div class="toast-message" id="toastMessage"></div>
+          <div class="toast-actions">
+            <button class="jump-button" id="toastDismiss" type="button">稍后</button>
+            <button class="jump-button" id="toastAction" type="button">切换查看</button>
+          </div>
+        </div>
+        <aside class="doc-outline" id="docOutline" aria-label="当前文档目录">
+          <div class="outline-title">文档目录</div>
+          <div class="outline-list" id="outlineList"></div>
+        </aside>
+        <div class="content-shell" id="contentShell">
+          <div class="empty">
+            <div class="empty-card">
+              <h2>选择一个本地目录</h2>
+              <p>左侧会生成两个入口：最近更新按 Markdown 文件更新时间倒序排列，目录结构保留原始层级。</p>
+              <p class="notice" id="supportNotice"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="loading-overlay" id="loadingOverlay" aria-live="polite" aria-busy="true">
+        <div class="loading-panel">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="loading-text" id="loadingText">正在解析目录</div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const state = {
+        files: [],
+        tree: null,
+        activePath: "",
+        query: "",
+        rootHandle: null,
+        savedHandleAwaitingPermission: null,
+        currentFile: null,
+        currentMarkdown: "",
+        viewMode: "raw",
+        refreshInFlight: false,
+        refreshTimer: null,
+        aiPendingKey: "",
+        aiPendingPath: "",
+        aiErrorPath: "",
+        aiErrorMessage: "",
+        toastAction: null,
+        toastTimer: null,
+      };
+
+      const directoryStore = {
+        dbName: "markdown-viewer",
+        storeName: "handles",
+        key: "last-directory",
+      };
+
+      const els = {
+        app: document.querySelector(".app"),
+        chooseDir: document.querySelector("#chooseDir"),
+        currentPath: document.querySelector("#currentPath"),
+        resizer: document.querySelector("#resizer"),
+        search: document.querySelector("#search"),
+        recentList: document.querySelector("#recentList"),
+        treeList: document.querySelector("#treeList"),
+        recentCount: document.querySelector("#recentCount"),
+        treeCount: document.querySelector("#treeCount"),
+        docName: document.querySelector("#docName"),
+        docPath: document.querySelector("#docPath"),
+        docOutline: document.querySelector("#docOutline"),
+        outlineList: document.querySelector("#outlineList"),
+        rawView: document.querySelector("#rawView"),
+        aiView: document.querySelector("#aiView"),
+        regenerateAi: document.querySelector("#regenerateAi"),
+        toast: document.querySelector("#toast"),
+        toastMessage: document.querySelector("#toastMessage"),
+        toastDismiss: document.querySelector("#toastDismiss"),
+        toastAction: document.querySelector("#toastAction"),
+        scrollTop: document.querySelector("#scrollTop"),
+        scrollBottom: document.querySelector("#scrollBottom"),
+        status: document.querySelector("#status"),
+        contentShell: document.querySelector("#contentShell"),
+        loadingText: document.querySelector("#loadingText"),
+        supportNotice: document.querySelector("#supportNotice"),
+      };
+
+      if (!("showDirectoryPicker" in window)) {
+        els.supportNotice.textContent =
+          "当前浏览器不支持选择本地目录。请使用 Chrome、Edge，或其他支持 File System Access API 的浏览器，并通过 localhost 打开本页。";
+        els.chooseDir.disabled = true;
+      }
+
+      els.chooseDir.addEventListener("click", chooseDirectory);
+      els.search.addEventListener("input", () => {
+        state.query = els.search.value.trim().toLowerCase();
+        renderNavigation();
+      });
+      els.rawView.addEventListener("click", () => switchView("raw"));
+      els.aiView.addEventListener("click", () => {
+        const aiErrored = Boolean(state.aiErrorPath) && state.currentFile && state.aiErrorPath === state.currentFile.path;
+        switchView("ai", aiErrored ? { regenerate: true } : {});
+      });
+      els.regenerateAi.addEventListener("click", () => switchView("ai", { regenerate: true }));
+      els.toastDismiss.addEventListener("click", hideToast);
+      els.toastAction.addEventListener("click", () => {
+        const action = state.toastAction;
+        hideToast();
+        if (typeof action === "function") action();
+      });
+      els.scrollTop.addEventListener("click", () => scrollContentTo("top"));
+      els.scrollBottom.addEventListener("click", () => scrollContentTo("bottom"));
+      initResizableSidebar();
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) refreshDirectoryIfNeeded();
+      });
+      window.addEventListener("focus", () => refreshDirectoryIfNeeded());
+      restoreSavedDirectory();
+
+      async function chooseDirectory() {
+        try {
+          if (state.savedHandleAwaitingPermission) {
+            const savedHandle = state.savedHandleAwaitingPermission;
+            const permission = await savedHandle.requestPermission({ mode: "read" });
+            if (permission === "granted") {
+              state.savedHandleAwaitingPermission = null;
+              els.chooseDir.textContent = "选择本地目录";
+              await loadDirectory(savedHandle);
+            }
+            return;
+          }
+
+          const rootHandle = await window.showDirectoryPicker({ mode: "read" });
+          await saveDirectoryHandle(rootHandle).catch(() => {});
+          await loadDirectory(rootHandle);
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            els.status.textContent = "读取失败";
+            renderEmpty("目录读取失败", error.message || "无法读取这个目录。");
+          }
+        }
+      }
+
+      async function loadDirectory(rootHandle) {
+        try {
+          setLoading(true, "正在解析目录");
+          await waitForPaint();
+          els.status.textContent = "扫描中";
+          state.activePath = "";
+          state.rootHandle = rootHandle;
+          els.currentPath.textContent = rootHandle.name;
+
+          const snapshot = await readDirectorySnapshot(rootHandle);
+          state.files = snapshot.files;
+          state.tree = snapshot.tree;
+          els.status.textContent = `${state.files.length} 个 Markdown 文件`;
+          renderNavigation();
+          startDirectoryRefreshLoop();
+
+          if (state.files[0]) {
+            await openFile(state.files[0]);
+          } else {
+            renderEmpty("没有找到 Markdown 文件", "这个目录下没有 .md 或 .markdown 文件。");
+          }
+        } catch (error) {
+          els.status.textContent = "读取失败";
+          renderEmpty("目录读取失败", error.message || "无法读取这个目录。");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function readDirectorySnapshot(rootHandle) {
+        const files = [];
+        const tree = createTreeNode(rootHandle.name);
+        await scanDirectory(rootHandle, [], tree, files);
+        files.sort((a, b) => b.lastModified - a.lastModified);
+        return { files, tree };
+      }
+
+      async function scanDirectory(directoryHandle, pathParts, treeNode, filesAccumulator) {
+        const entries = [];
+        for await (const entry of directoryHandle.values()) {
+          entries.push(entry);
+        }
+
+        entries.sort((a, b) => {
+          if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+          return a.name.localeCompare(b.name, "zh-CN");
+        });
+
+        for (const entry of entries) {
+          if (entry.kind === "directory") {
+            const child = createTreeNode(entry.name);
+            treeNode.dirs.push(child);
+            await scanDirectory(entry, [...pathParts, entry.name], child, filesAccumulator);
+            if (!child.dirs.length && !child.files.length) {
+              treeNode.dirs = treeNode.dirs.filter((dir) => dir !== child);
+            }
+            continue;
+          }
+
+          if (!isMarkdownFile(entry.name)) continue;
+
+          const file = await entry.getFile();
+          const item = {
+            name: entry.name,
+            path: [...pathParts, entry.name].join("/"),
+            lastModified: file.lastModified,
+            size: file.size,
+            handle: entry,
+          };
+          filesAccumulator.push(item);
+          treeNode.files.push(item);
+        }
+      }
+
+      function createTreeNode(name) {
+        return { name, dirs: [], files: [] };
+      }
+
+      function isMarkdownFile(name) {
+        return /\.(md|markdown)$/i.test(name);
+      }
+
+      function renderNavigation() {
+        const files = getFilteredFiles();
+        els.recentCount.textContent = files.length;
+        els.treeCount.textContent = files.length;
+        els.recentList.replaceChildren(
+          ...files.map((file) => renderFileButton(file, { showTooltip: true })),
+        );
+        els.treeList.replaceChildren(renderTreeNode(state.tree, true, 0));
+      }
+
+      function getFilteredFiles() {
+        if (!state.query) return [...state.files];
+        return state.files.filter((file) =>
+          file.path.toLowerCase().includes(state.query),
+        );
+      }
+
+      function renderFileButton(file, options = {}) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = [
+          "file-button",
+          file.path === state.activePath ? "active" : "",
+          options.showTooltip ? "show-tooltip" : "",
+        ].filter(Boolean).join(" ");
+        button.title = file.path;
+        button.dataset.path = file.path;
+        button.innerHTML = `
+          <span class="file-name">${escapeHtml(file.name)}</span>
+          <span class="file-meta">${escapeHtml(formatDate(file.lastModified))} · ${escapeHtml(file.path)}</span>
+        `;
+        button.addEventListener("click", () => openFile(file));
+        return button;
+      }
+
+      function renderTreeNode(node, isRoot = false, depth = 0) {
+        const container = document.createElement("div");
+        container.className = isRoot ? "tree-root" : "tree-children";
+
+        const visibleFiles = node.files.filter(matchesQuery);
+        const visibleDirs = node.dirs
+          .map((dir) => ({ dir, hasVisible: treeHasMatches(dir) }))
+          .filter((entry) => entry.hasVisible)
+          .map((entry) => entry.dir);
+
+        if (!isRoot) {
+          const details = document.createElement("details");
+          details.open = Boolean(state.query);
+          const summary = document.createElement("summary");
+          summary.textContent = node.name;
+          details.append(summary);
+          const children = document.createElement("div");
+          children.className = "tree-children";
+          visibleDirs.forEach((dir) => children.append(renderTreeNode(dir, false, depth + 1)));
+          visibleFiles.forEach((file) => children.append(renderFileButton(file)));
+          details.append(children);
+          return details;
+        }
+
+        visibleDirs.forEach((dir) => container.append(renderTreeNode(dir, false, depth + 1)));
+        visibleFiles.forEach((file) => container.append(renderFileButton(file)));
+        return container;
+      }
+
+      function treeHasMatches(node) {
+        return (
+          node.files.some(matchesQuery) ||
+          node.dirs.some((child) => treeHasMatches(child))
+        );
+      }
+
+      function matchesQuery(file) {
+        return !state.query || file.path.toLowerCase().includes(state.query);
+      }
+
+      async function openFile(file) {
+        try {
+          els.status.textContent = "读取中";
+          const blob = await file.handle.getFile();
+          const markdown = await blob.text();
+          state.activePath = file.path;
+          state.currentFile = file;
+          state.currentMarkdown = markdown;
+          state.viewMode = "raw";
+          state.aiErrorPath = "";
+          state.aiErrorMessage = "";
+          els.docName.textContent = file.name;
+          els.docPath.textContent = `${file.path} · ${formatDate(file.lastModified)} · ${formatSize(file.size)}`;
+          renderRawMarkdown();
+          updateViewButtons();
+          els.status.textContent = "HTML 预览";
+          renderNavigation();
+        } catch (error) {
+          els.status.textContent = "读取失败";
+          renderEmpty("文件读取失败", error.message || "无法读取这个 Markdown 文件。");
+        }
+      }
+
+      function renderEmpty(title, text) {
+        els.docName.textContent = title;
+        els.docPath.textContent = text;
+        state.currentFile = null;
+        state.currentMarkdown = "";
+        state.viewMode = "raw";
+        state.aiErrorPath = "";
+        state.aiErrorMessage = "";
+        updateViewButtons();
+        clearDocumentOutline();
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.innerHTML = `
+          <div class="empty-card">
+            <h2>${escapeHtml(title)}</h2>
+            <p>${escapeHtml(text)}</p>
+          </div>
+        `;
+        els.contentShell.replaceChildren(empty);
+      }
+
+      async function switchView(mode, options = {}) {
+        if (!state.currentFile) return;
+
+        if (mode === "raw") {
+          state.viewMode = "raw";
+          updateViewButtons();
+          renderRawMarkdown();
+          els.status.textContent = "HTML 预览";
+          return;
+        }
+
+        const key = getAiCacheKey(state.currentFile);
+        const cached = !options.regenerate ? getAiCache(key) : null;
+        if (cached) {
+          state.viewMode = "ai";
+          updateViewButtons();
+          renderAiReading(cached);
+          els.status.textContent = "AI 阅读版";
+          return;
+        }
+
+        state.viewMode = "raw";
+        updateViewButtons();
+        els.status.textContent = "AI 后台生成中";
+        renderRawMarkdown();
+        await generateAiReadingInBackground(options);
+      }
+
+      function updateViewButtons() {
+        els.rawView.classList.toggle("active", state.viewMode === "raw");
+        els.aiView.classList.toggle("active", state.viewMode === "ai");
+        const aiErrored = Boolean(state.aiErrorPath) && state.currentFile && state.aiErrorPath === state.currentFile.path;
+        els.aiView.classList.toggle("error", aiErrored && state.viewMode !== "ai");
+        els.regenerateAi.style.display = state.currentFile && state.viewMode === "ai" ? "" : "none";
+        const aiPending = Boolean(state.aiPendingKey) && state.currentFile && state.aiPendingPath === state.currentFile.path;
+        els.aiView.disabled = aiPending;
+        els.aiView.textContent = aiPending ? "AI 生成中..." : aiErrored ? "AI 失败" : "AI 阅读版";
+        els.aiView.title = "";
+        els.aiView.dataset.error = aiErrored
+          ? `${state.aiErrorMessage || "AI 阅读版生成失败"}\A点击可重新生成`
+          : "";
+      }
+
+      function renderRawMarkdown() {
+        const article = document.createElement("article");
+        article.className = "markdown-body";
+        article.insertAdjacentHTML("beforeend", markdownToHtml(state.currentMarkdown));
+        els.contentShell.replaceChildren(article);
+        buildDocumentOutline();
+        scrollContentTo("top", "auto");
+      }
+
+      async function generateAiReadingInBackground(options = {}) {
+        if (!state.currentFile) return;
+        const key = getAiCacheKey(state.currentFile);
+        if (state.aiPendingKey === key) {
+          return;
+        }
+
+        try {
+          state.aiPendingKey = key;
+          state.aiPendingPath = state.currentFile.path;
+          state.aiErrorPath = "";
+          state.aiErrorMessage = "";
+          updateViewButtons();
+          const pendingFile = state.currentFile;
+          const pendingMarkdown = state.currentMarkdown;
+
+          const response = await fetch("/api/ai-read", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              path: pendingFile.path,
+              lastModified: pendingFile.lastModified,
+              markdown: pendingMarkdown,
+            }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(payload.error || "AI 阅读版生成失败");
+          }
+
+          setAiCache(key, payload.result);
+          state.aiErrorPath = "";
+          state.aiErrorMessage = "";
+          if (state.currentFile && state.currentFile.path === pendingFile.path) {
+            els.status.textContent = "AI 阅读版已就绪";
+            showToast("AI 阅读版已生成完成。", "切换查看", () => {
+              state.viewMode = "ai";
+              updateViewButtons();
+              renderAiReading(payload.result);
+              els.status.textContent = "AI 阅读版";
+            });
+          }
+        } catch (error) {
+          els.status.textContent = "AI 失败";
+          if (state.currentFile && state.currentFile.path === state.aiPendingPath) {
+            state.aiErrorPath = state.currentFile.path;
+            state.aiErrorMessage = error.message || "无法生成 AI 阅读版。";
+            showToast(state.aiErrorMessage, "知道了", null, { tone: "error" });
+          }
+        } finally {
+          state.aiPendingKey = "";
+          state.aiPendingPath = "";
+          updateViewButtons();
+        }
+      }
+
+      function renderAiReading(result) {
+        const article = document.createElement("article");
+        article.className = "markdown-body ai-body";
+        article.innerHTML = `
+          <section class="ai-hero">
+            <h1>${escapeHtml(result.title || state.currentFile.name)}</h1>
+            <p class="ai-summary">${inlineMarkdown(result.summary || "暂无摘要。")}</p>
+          </section>
+          ${renderAiListSection("重点速览", result.highlights, "ai-pill-list")}
+          ${renderAiSections(result.sections)}
+          ${renderAiListSection("风险与待确认", result.risks)}
+          ${renderAiListSection("后续行动", result.todos)}
+        `;
+        els.contentShell.replaceChildren(article);
+        buildDocumentOutline();
+        scrollContentTo("top", "auto");
+      }
+
+      function renderAiSections(sections = []) {
+        if (!sections.length) {
+          return `<section class="ai-section"><h2>内容整理</h2><p class="ai-empty">Codex 没有提炼出明确分区。</p></section>`;
+        }
+
+        return sections
+          .map((section) => `
+            <section class="ai-section">
+              <h2>${escapeHtml(section.title || "未命名分区")}</h2>
+              ${section.content ? `<p>${inlineMarkdown(section.content)}</p>` : ""}
+              ${renderPlainList(section.items)}
+            </section>
+          `)
+          .join("");
+      }
+
+      function renderAiListSection(title, items = [], listClass = "") {
+        return `
+          <section class="ai-section">
+            <h2>${escapeHtml(title)}</h2>
+            ${renderPlainList(items, listClass)}
+          </section>
+        `;
+      }
+
+      function renderPlainList(items = [], listClass = "") {
+        if (!items.length) {
+          return `<p class="ai-empty">暂无。</p>`;
+        }
+
+        return `
+          <ul class="${escapeHtml(listClass)}">
+            ${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}
+          </ul>
+        `;
+      }
+
+      function renderAiError(message) {
+        const article = document.createElement("article");
+        article.className = "markdown-body";
+        article.innerHTML = `
+          <h1>AI 阅读版生成失败</h1>
+          <p>${escapeHtml(message)}</p>
+          <p>请确认当前页面由本地 Node 服务启动，并且终端里的 <code>codex</code> 命令可用。</p>
+        `;
+        els.contentShell.replaceChildren(article);
+        clearDocumentOutline();
+      }
+
+      function showToast(message, actionLabel = "知道了", action = null, options = {}) {
+        if (state.toastTimer) {
+          clearTimeout(state.toastTimer);
+        }
+        els.toastMessage.textContent = message;
+        els.toastAction.textContent = actionLabel;
+        els.toastAction.style.display = action ? "" : "none";
+        state.toastAction = action;
+        els.toast.classList.toggle("error", options.tone === "error");
+        els.toast.classList.add("visible");
+        state.toastTimer = setTimeout(() => {
+          hideToast();
+        }, 3000);
+      }
+
+      function hideToast() {
+        if (state.toastTimer) {
+          clearTimeout(state.toastTimer);
+          state.toastTimer = null;
+        }
+        state.toastAction = null;
+        els.toast.classList.remove("visible");
+        els.toast.classList.remove("error");
+      }
+
+      function getAiCacheKey(file) {
+        return `ai-reading:${file.path}:${file.lastModified}:${file.size}`;
+      }
+
+      function getAiCache(key) {
+        try {
+          return JSON.parse(localStorage.getItem(key));
+        } catch {
+          return null;
+        }
+      }
+
+      function setAiCache(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch {
+          // 缓存失败不影响阅读。
+        }
+      }
+
+      function scrollContentTo(position, behavior = "smooth") {
+        const top =
+          position === "bottom"
+            ? Math.max(0, els.contentShell.scrollHeight - els.contentShell.clientHeight)
+            : 0;
+        els.contentShell.scrollTo({ top, behavior });
+      }
+
+      function buildDocumentOutline() {
+        const article = els.contentShell.querySelector(".markdown-body");
+        const headings = article
+          ? [...article.querySelectorAll("h1, h2, h3, h4, h5, h6")]
+          : [];
+
+        if (!headings.length) {
+          clearDocumentOutline();
+          return;
+        }
+
+        const usedIds = new Set();
+        els.outlineList.replaceChildren(
+          ...headings.map((heading) => {
+            const level = Number(heading.tagName.slice(1));
+            const text = heading.textContent.trim() || "未命名标题";
+            const id = uniqueSlug(text, usedIds);
+            heading.id = id;
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `outline-link outline-level-${level}`;
+            button.textContent = text;
+            button.title = text;
+            button.addEventListener("click", () => scrollHeadingIntoView(heading));
+            return button;
+          }),
+        );
+        els.docOutline.classList.add("visible");
+        els.docOutline.closest(".viewer").classList.add("outline-visible");
+      }
+
+      function clearDocumentOutline() {
+        els.outlineList.replaceChildren();
+        els.docOutline.classList.remove("visible");
+        els.docOutline.closest(".viewer").classList.remove("outline-visible");
+      }
+
+      function scrollHeadingIntoView(heading) {
+        const shellRect = els.contentShell.getBoundingClientRect();
+        const headingRect = heading.getBoundingClientRect();
+        els.contentShell.scrollTo({
+          top: els.contentShell.scrollTop + headingRect.top - shellRect.top - 18,
+          behavior: "smooth",
+        });
+      }
+
+      function uniqueSlug(text, usedIds) {
+        const base =
+          text
+            .toLowerCase()
+            .trim()
+            .replace(/[^\p{L}\p{N}]+/gu, "-")
+            .replace(/^-+|-+$/g, "") || "heading";
+        let id = base;
+        let index = 2;
+        while (usedIds.has(id)) {
+          id = `${base}-${index}`;
+          index += 1;
+        }
+        usedIds.add(id);
+        return id;
+      }
+
+      function markdownToHtml(markdown) {
+        const blocks = [];
+        let source = markdown.replace(/\r\n?/g, "\n");
+        source = source.replace(/```([\w-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+          const index = blocks.push(
+            `<pre><code class="language-${escapeHtml(lang)}">${escapeHtml(code.trimEnd())}</code></pre>`,
+          );
+          return `\n@@BLOCK_${index - 1}@@\n`;
+        });
+
+        source = source.replace(/^\|(.+)\|\n\|([\s:-]+\|)+\n((?:\|.*\|\n?)*)/gm, (match) => {
+          const rows = match
+            .trim()
+            .split("\n")
+            .map((row) => row.slice(1, -1).split("|").map((cell) => cell.trim()));
+          const [headers, , ...body] = rows;
+          const table = [
+            "<table><thead><tr>",
+            ...headers.map((cell) => `<th>${inlineMarkdown(cell)}</th>`),
+            "</tr></thead><tbody>",
+            ...body.flatMap((row) => [
+              "<tr>",
+              ...row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`),
+              "</tr>",
+            ]),
+            "</tbody></table>",
+          ].join("");
+          const index = blocks.push(table);
+          return `\n@@BLOCK_${index - 1}@@\n`;
+        });
+
+        const lines = source.split("\n");
+        const html = [];
+        let paragraph = [];
+        let listStack = [];
+        let quote = [];
+
+        const flushParagraph = () => {
+          if (!paragraph.length) return;
+          html.push(`<p>${inlineMarkdown(paragraph.join(" "))}</p>`);
+          paragraph = [];
+        };
+
+        const closeLists = (targetDepth = 0) => {
+          while (listStack.length > targetDepth) {
+            html.push(`</${listStack.pop()}>`);
+          }
+        };
+
+        const flushQuote = () => {
+          if (!quote.length) return;
+          html.push(`<blockquote>${quote.map((line) => `<p>${inlineMarkdown(line)}</p>`).join("")}</blockquote>`);
+          quote = [];
+        };
+
+        for (const rawLine of lines) {
+          const line = rawLine.trimEnd();
+          const blockMatch = line.match(/^@@BLOCK_(\d+)@@$/);
+          if (blockMatch) {
+            flushParagraph();
+            flushQuote();
+            closeLists();
+            html.push(blocks[Number(blockMatch[1])]);
+            continue;
+          }
+
+          if (!line.trim()) {
+            flushParagraph();
+            flushQuote();
+            closeLists();
+            continue;
+          }
+
+          const heading = line.match(/^(#{1,6})\s+(.+)$/);
+          if (heading) {
+            flushParagraph();
+            flushQuote();
+            closeLists();
+            const level = heading[1].length;
+            html.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);
+            continue;
+          }
+
+          const quoteLine = line.match(/^>\s?(.*)$/);
+          if (quoteLine) {
+            flushParagraph();
+            closeLists();
+            quote.push(quoteLine[1]);
+            continue;
+          }
+
+          const listItem = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
+          if (listItem) {
+            flushParagraph();
+            flushQuote();
+            const depth = Math.floor(listItem[1].length / 2);
+            const type = /\d+\./.test(listItem[2]) ? "ol" : "ul";
+            const level = depth + 1;
+
+            if (listStack[depth] && listStack[depth] !== type) {
+              closeLists(depth);
+            } else {
+              closeLists(level);
+            }
+
+            while (listStack.length < level) {
+              html.push(`<${type}>`);
+              listStack.push(type);
+            }
+
+            html.push(`<li>${inlineMarkdown(listItem[3])}</li>`);
+            continue;
+          }
+
+          closeLists();
+          flushQuote();
+          paragraph.push(line.trim());
+        }
+
+        flushParagraph();
+        flushQuote();
+        closeLists();
+
+        return html.join("\n");
+      }
+
+      function inlineMarkdown(text) {
+        let escaped = escapeHtml(text);
+        const code = [];
+        escaped = escaped.replace(/`([^`]+)`/g, (_, value) => {
+          const index = code.push(`<code>${value}</code>`);
+          return `§§CODE${index - 1}§§`;
+        });
+        escaped = escaped
+          .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" />')
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+          .replace(/\*\*([^*\s][^*]*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/(^|[^\w])__([^_\s][^_]*?)__(?!\w)/g, "$1<strong>$2</strong>")
+          .replace(/\*([^*\s][^*]*?)\*/g, "<em>$1</em>")
+          .replace(/(^|[^\w])_([^_\s][^_]*?)_(?!\w)/g, "$1<em>$2</em>")
+          .replace(/~~([^~]+)~~/g, "<del>$1</del>");
+        code.forEach((html, index) => {
+          escaped = escaped.replace(`§§CODE${index}§§`, html);
+        });
+        return escaped;
+      }
+
+      async function restoreSavedDirectory() {
+        if (!("showDirectoryPicker" in window)) return;
+
+        const savedHandle = await getSavedDirectoryHandle();
+        if (!savedHandle) return;
+
+        els.currentPath.textContent = `已保存：${savedHandle.name}`;
+        els.chooseDir.textContent = "打开上次目录";
+
+        const permission = await savedHandle.queryPermission({ mode: "read" });
+        if (permission === "granted") {
+          await loadDirectory(savedHandle);
+          return;
+        }
+
+        els.status.textContent = "等待目录授权";
+        renderEmpty("已记住上次目录", "点击左侧按钮重新授权后即可恢复浏览。");
+        state.savedHandleAwaitingPermission = savedHandle;
+      }
+
+      function setLoading(isLoading, text = "正在处理") {
+        els.loadingText.textContent = text;
+        els.app.classList.toggle("loading", isLoading);
+      }
+
+      function startDirectoryRefreshLoop() {
+        if (state.refreshTimer) {
+          clearInterval(state.refreshTimer);
+        }
+        state.refreshTimer = setInterval(() => {
+          if (!document.hidden) refreshDirectoryIfNeeded();
+        }, 30000);
+      }
+
+      async function refreshDirectoryIfNeeded() {
+        if (!state.rootHandle || state.refreshInFlight) return;
+        state.refreshInFlight = true;
+
+        try {
+          const snapshot = await readDirectorySnapshot(state.rootHandle);
+          const nextSignature = snapshot.files.map((file) => `${file.path}:${file.lastModified}:${file.size}`).join("|");
+          const currentSignature = state.files.map((file) => `${file.path}:${file.lastModified}:${file.size}`).join("|");
+
+          if (nextSignature === currentSignature) return;
+
+          state.files = snapshot.files;
+          state.tree = snapshot.tree;
+          renderNavigation();
+          els.status.textContent = `${state.files.length} 个 Markdown 文件，已同步更新`;
+
+          if (!state.currentFile) return;
+
+          const matched = state.files.find((file) => file.path === state.currentFile.path);
+          if (!matched) {
+            renderEmpty("当前文档已移除", "目录刷新后，当前打开的 Markdown 文件不存在了。");
+            showToast("目录已更新，当前文档已不存在。", "知道了");
+            return;
+          }
+
+          if (
+            matched.lastModified !== state.currentFile.lastModified ||
+            matched.size !== state.currentFile.size
+          ) {
+            const wasAi = state.viewMode === "ai";
+            await openFile(matched);
+            showToast(
+              "当前文档已检测到更新，页面内容已同步刷新。",
+              wasAi ? "生成新版 AI 阅读版" : "知道了",
+              wasAi ? () => switchView("ai", { regenerate: true }) : null,
+            );
+          }
+        } catch {
+          els.status.textContent = "自动同步失败";
+        } finally {
+          state.refreshInFlight = false;
+        }
+      }
+
+      function waitForPaint() {
+        return new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+      }
+
+      function initResizableSidebar() {
+        const savedWidth = Number(localStorage.getItem("markdown-viewer-sidebar-width"));
+        if (savedWidth) {
+          setSidebarWidth(savedWidth);
+        }
+
+        els.resizer.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          els.app.classList.add("resizing");
+          els.resizer.setPointerCapture(event.pointerId);
+        });
+
+        els.resizer.addEventListener("pointermove", (event) => {
+          if (!els.app.classList.contains("resizing")) return;
+          const width = setSidebarWidth(event.clientX);
+          localStorage.setItem("markdown-viewer-sidebar-width", String(width));
+        });
+
+        const stopResize = (event) => {
+          if (!els.app.classList.contains("resizing")) return;
+          els.app.classList.remove("resizing");
+          if (els.resizer.hasPointerCapture(event.pointerId)) {
+            els.resizer.releasePointerCapture(event.pointerId);
+          }
+        };
+
+        els.resizer.addEventListener("pointerup", stopResize);
+        els.resizer.addEventListener("pointercancel", stopResize);
+      }
+
+      function setSidebarWidth(width) {
+        const maxWidth = Math.min(620, Math.round(window.innerWidth * 0.55));
+        const nextWidth = Math.max(280, Math.min(width, maxWidth));
+        document.documentElement.style.setProperty("--sidebar-width", `${nextWidth}px`);
+        return nextWidth;
+      }
+
+      async function saveDirectoryHandle(handle) {
+        const db = await openDirectoryDb();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(directoryStore.storeName, "readwrite");
+          tx.objectStore(directoryStore.storeName).put(handle, directoryStore.key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async function getSavedDirectoryHandle() {
+        try {
+          const db = await openDirectoryDb();
+          return await new Promise((resolve, reject) => {
+            const tx = db.transaction(directoryStore.storeName, "readonly");
+            const request = tx.objectStore(directoryStore.storeName).get(directoryStore.key);
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => reject(request.error);
+          });
+        } catch {
+          return null;
+        }
+      }
+
+      function openDirectoryDb() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(directoryStore.dbName, 1);
+          request.onupgradeneeded = () => {
+            request.result.createObjectStore(directoryStore.storeName);
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function formatDate(timestamp) {
+        return new Intl.DateTimeFormat("zh-CN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(timestamp));
+      }
+
+      function formatSize(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      }
+    </script>
+  </body>
+</html>
