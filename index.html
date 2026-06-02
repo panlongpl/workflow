@@ -329,6 +329,14 @@
         justify-self: end;
       }
 
+      .center-controls {
+        display: flex;
+        align-items: center;
+        justify-self: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
       .view-switch {
         border: 1px solid var(--line);
         border-radius: 8px;
@@ -336,6 +344,29 @@
         overflow: hidden;
         background: var(--panel);
         justify-self: center;
+      }
+
+      .mode-switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 5px 8px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .mode-switch select {
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font-size: 12px;
+        outline: none;
+        min-width: 92px;
+        cursor: pointer;
       }
 
       .view-button {
@@ -490,6 +521,28 @@
         display: block;
       }
 
+      .outline-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+
+      .outline-tab {
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 8px;
+      }
+
+      .outline-tab.active {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+      }
+
       .outline-title {
         color: var(--muted);
         font-size: 12px;
@@ -521,6 +574,295 @@
       .outline-link:hover {
         background: var(--accent-soft);
         color: var(--accent-strong);
+      }
+
+      .annotation-item {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--ink);
+        cursor: pointer;
+        display: grid;
+        gap: 4px;
+        padding: 8px;
+        text-align: left;
+        width: 100%;
+      }
+
+      .annotation-item:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .annotation-quote {
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+
+      .annotation-note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .annotation-mark {
+        background: #fff3bf;
+        border-bottom: 2px solid var(--warn);
+        border-radius: 3px;
+        cursor: pointer;
+        padding: 0 2px;
+      }
+
+      .annotation-mark.active {
+        background: #fde68a;
+      }
+
+      .selection-float {
+        position: fixed;
+        z-index: 12;
+        display: none;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 12px 28px rgba(31, 41, 51, 0.18);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 12px;
+      }
+
+      .annotation-drawer {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        z-index: 10;
+        display: none;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 20px 54px rgba(31, 41, 51, 0.18);
+        padding: 14px;
+      }
+
+      .annotation-drawer.visible {
+        display: grid;
+        gap: 10px;
+      }
+
+      .annotation-drawer-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .annotation-drawer-quote {
+        border-left: 3px solid var(--accent);
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        max-height: 72px;
+        overflow: auto;
+        padding-left: 10px;
+      }
+
+      .annotation-textarea {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        color: var(--ink);
+        font: inherit;
+        min-height: 96px;
+        padding: 10px;
+        resize: vertical;
+        width: 100%;
+      }
+
+      .annotation-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .history-body {
+        background: var(--panel);
+        min-height: calc(100vh - 76px);
+        padding: 30px 42px 64px;
+        display: grid;
+        align-content: start;
+        gap: 16px;
+      }
+
+      .history-header,
+      .history-document,
+      .history-empty {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .history-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .history-header-main {
+        min-width: 0;
+      }
+
+      .history-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .history-mode-switch {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: inline-flex;
+        overflow: hidden;
+        background: var(--panel);
+      }
+
+      .history-mode-button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+
+      .history-mode-button.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .history-header h2,
+      .history-document h3,
+      .history-empty h2 {
+        margin: 0;
+        color: var(--ink);
+      }
+
+      .history-header p,
+      .history-document-header p,
+      .history-empty p,
+      .history-meta {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+
+      .history-count {
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 10px;
+        white-space: nowrap;
+      }
+
+      .history-document {
+        overflow: hidden;
+      }
+
+      .history-document-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 16px;
+      }
+
+      .history-document-header h3 {
+        font-size: 15px;
+      }
+
+      .history-document-header span {
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .history-list {
+        display: grid;
+      }
+
+      .history-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+
+      .history-item + .history-item {
+        border-top: 1px solid var(--line);
+      }
+
+      .history-item-main {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .history-quote {
+        color: var(--ink);
+        font-weight: 700;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+
+      .history-note {
+        border-left: 3px solid var(--accent);
+        color: var(--muted);
+        line-height: 1.55;
+        padding-left: 10px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .history-empty {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+        padding: 48px 20px;
+        text-align: center;
+      }
+
+      .history-flat {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .history-flat-textarea {
+        border: 0;
+        color: var(--ink);
+        display: block;
+        font: 14px/1.7 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        min-height: 420px;
+        outline: none;
+        padding: 16px;
+        resize: vertical;
+        width: 100%;
+        white-space: pre;
       }
 
       .outline-level-2 {
@@ -807,8 +1149,23 @@
           justify-self: start;
         }
 
+        .center-controls {
+          flex-wrap: wrap;
+          justify-self: start;
+        }
+
         .view-switch {
           justify-self: start;
+        }
+
+        .mode-switch {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .mode-switch select {
+          min-width: 0;
+          flex: 1;
         }
 
         .content-shell {
@@ -818,6 +1175,32 @@
         .markdown-body {
           min-height: auto;
           padding: 22px;
+        }
+
+        .history-body {
+          min-height: auto;
+          padding: 18px;
+        }
+
+        .history-header,
+        .history-document-header,
+        .history-item {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+        }
+
+        .history-header,
+        .history-document-header {
+          display: grid;
+        }
+
+        .history-count,
+        .history-document-header span {
+          justify-self: start;
+        }
+
+        .history-header-actions {
+          justify-content: flex-start;
         }
 
         .doc-outline {
@@ -875,9 +1258,22 @@
             <strong id="docName">未打开文件</strong>
             <span id="docPath">选择左侧 Markdown 文件后在这里预览</span>
           </div>
-          <div class="view-switch" aria-label="预览模式">
-            <button class="view-button active" id="rawView" type="button">原文</button>
-            <button class="view-button" id="aiView" type="button">AI 阅读版</button>
+          <div class="center-controls">
+            <div class="view-switch" aria-label="预览模式">
+              <button class="view-button active" id="rawView" type="button">原文</button>
+              <button class="view-button" id="aiView" type="button">AI 阅读版</button>
+              <button class="view-button" id="historyView" type="button">历史注释</button>
+            </div>
+            <label class="mode-switch" for="readingMode">
+              <span>阅读模式</span>
+              <select id="readingMode">
+                <option value="auto">自动</option>
+                <option value="general">通用</option>
+                <option value="task">任务文档</option>
+                <option value="api">接口文档</option>
+                <option value="design">设计文档</option>
+              </select>
+            </label>
           </div>
           <div class="viewer-tools">
             <button class="jump-button" id="scrollTop" type="button">↑ 顶部</button>
@@ -893,10 +1289,27 @@
             <button class="jump-button" id="toastAction" type="button">切换查看</button>
           </div>
         </div>
+        <button class="selection-float" id="selectionRecord" type="button">记录</button>
         <aside class="doc-outline" id="docOutline" aria-label="当前文档目录">
-          <div class="outline-title">文档目录</div>
+          <div class="outline-tabs">
+            <button class="outline-tab active" id="outlineTab" type="button">目录</button>
+            <button class="outline-tab" id="annotationTab" type="button">注释</button>
+          </div>
           <div class="outline-list" id="outlineList"></div>
+          <div class="outline-list" id="annotationList" hidden></div>
         </aside>
+        <section class="annotation-drawer" id="annotationDrawer" aria-label="文字记录">
+          <div class="annotation-drawer-title">
+            <span>文字记录</span>
+            <button class="jump-button" id="annotationClose" type="button">关闭</button>
+          </div>
+          <div class="annotation-drawer-quote" id="annotationQuote"></div>
+          <textarea class="annotation-textarea" id="annotationText" placeholder="写下这段文字的记录"></textarea>
+          <div class="annotation-actions">
+            <button class="jump-button" id="annotationDelete" type="button">删除</button>
+            <button class="jump-button" id="annotationSave" type="button">保存</button>
+          </div>
+        </section>
         <div class="content-shell" id="contentShell">
           <div class="empty">
             <div class="empty-card">
@@ -921,26 +1334,31 @@
         tree: null,
         activePath: "",
         query: "",
-        rootHandle: null,
-        savedHandleAwaitingPermission: null,
+        expandedDirs: new Set(),
+        rootPath: "",
         currentFile: null,
         currentMarkdown: "",
+        annotations: [],
+        annotationHistory: [],
+        annotationHistoryMode: "grouped",
+        annotationStorePath: "",
+        annotationDraft: null,
+        annotationPanelTab: "outline",
         viewMode: "raw",
         refreshInFlight: false,
         refreshTimer: null,
+        eventSource: null,
+        eventRefreshTimer: null,
         aiPendingKey: "",
         aiPendingPath: "",
         aiErrorPath: "",
         aiErrorMessage: "",
+        readingMode: "auto",
         toastAction: null,
         toastTimer: null,
       };
 
-      const directoryStore = {
-        dbName: "markdown-viewer",
-        storeName: "handles",
-        key: "last-directory",
-      };
+      const AI_CACHE_VERSION = "v3-mode-aware";
 
       const els = {
         app: document.querySelector(".app"),
@@ -956,8 +1374,20 @@
         docPath: document.querySelector("#docPath"),
         docOutline: document.querySelector("#docOutline"),
         outlineList: document.querySelector("#outlineList"),
+        outlineTab: document.querySelector("#outlineTab"),
+        annotationTab: document.querySelector("#annotationTab"),
+        annotationList: document.querySelector("#annotationList"),
+        selectionRecord: document.querySelector("#selectionRecord"),
+        annotationDrawer: document.querySelector("#annotationDrawer"),
+        annotationQuote: document.querySelector("#annotationQuote"),
+        annotationText: document.querySelector("#annotationText"),
+        annotationClose: document.querySelector("#annotationClose"),
+        annotationDelete: document.querySelector("#annotationDelete"),
+        annotationSave: document.querySelector("#annotationSave"),
         rawView: document.querySelector("#rawView"),
         aiView: document.querySelector("#aiView"),
+        historyView: document.querySelector("#historyView"),
+        readingMode: document.querySelector("#readingMode"),
         regenerateAi: document.querySelector("#regenerateAi"),
         toast: document.querySelector("#toast"),
         toastMessage: document.querySelector("#toastMessage"),
@@ -971,11 +1401,9 @@
         supportNotice: document.querySelector("#supportNotice"),
       };
 
-      if (!("showDirectoryPicker" in window)) {
-        els.supportNotice.textContent =
-          "当前浏览器不支持选择本地目录。请使用 Chrome、Edge，或其他支持 File System Access API 的浏览器，并通过 localhost 打开本页。";
-        els.chooseDir.disabled = true;
-      }
+      els.chooseDir.disabled = false;
+      els.chooseDir.textContent = "选择本地目录";
+      els.currentPath.textContent = "尚未选择目录";
 
       els.chooseDir.addEventListener("click", chooseDirectory);
       els.search.addEventListener("input", () => {
@@ -987,6 +1415,17 @@
         const aiErrored = Boolean(state.aiErrorPath) && state.currentFile && state.aiErrorPath === state.currentFile.path;
         switchView("ai", aiErrored ? { regenerate: true } : {});
       });
+      els.historyView.addEventListener("click", () => switchView("history"));
+      els.readingMode.addEventListener("change", () => {
+        state.readingMode = els.readingMode.value;
+        if (!state.currentFile) return;
+        const wasAi = state.viewMode === "ai";
+        if (wasAi) {
+          switchView("ai");
+        } else {
+          showToast(`已切换到${readingModeLabel(state.readingMode)}。下次生成 AI 阅读版时生效。`);
+        }
+      });
       els.regenerateAi.addEventListener("click", () => switchView("ai", { regenerate: true }));
       els.toastDismiss.addEventListener("click", hideToast);
       els.toastAction.addEventListener("click", () => {
@@ -996,51 +1435,62 @@
       });
       els.scrollTop.addEventListener("click", () => scrollContentTo("top"));
       els.scrollBottom.addEventListener("click", () => scrollContentTo("bottom"));
+      els.outlineTab.addEventListener("click", () => switchAnnotationPanel("outline"));
+      els.annotationTab.addEventListener("click", () => switchAnnotationPanel("annotations"));
+      els.selectionRecord.addEventListener("click", () => openAnnotationDrawer(state.annotationDraft));
+      els.annotationClose.addEventListener("click", closeAnnotationDrawer);
+      els.annotationSave.addEventListener("click", saveCurrentAnnotation);
+      els.annotationDelete.addEventListener("click", deleteCurrentAnnotation);
+      els.contentShell.addEventListener("mouseup", handleTextSelection);
+      els.contentShell.addEventListener("keyup", handleTextSelection);
+      els.contentShell.addEventListener("scroll", hideSelectionRecord);
       initResizableSidebar();
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) refreshDirectoryIfNeeded();
       });
       window.addEventListener("focus", () => refreshDirectoryIfNeeded());
-      restoreSavedDirectory();
 
       async function chooseDirectory() {
+        els.chooseDir.disabled = true;
+        els.chooseDir.textContent = "选择中...";
+        els.status.textContent = "等待目录选择";
+
         try {
-          if (state.savedHandleAwaitingPermission) {
-            const savedHandle = state.savedHandleAwaitingPermission;
-            const permission = await savedHandle.requestPermission({ mode: "read" });
-            if (permission === "granted") {
-              state.savedHandleAwaitingPermission = null;
-              els.chooseDir.textContent = "选择本地目录";
-              await loadDirectory(savedHandle);
-            }
+          const response = await fetch("/api/choose-directory", { method: "POST" });
+          const snapshot = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(snapshot.error || "无法选择目录。");
+          }
+
+          if (snapshot.canceled) {
+            els.status.textContent = "已取消选择";
             return;
           }
 
-          const rootHandle = await window.showDirectoryPicker({ mode: "read" });
-          await saveDirectoryHandle(rootHandle).catch(() => {});
-          await loadDirectory(rootHandle);
+          await loadDirectorySnapshot(snapshot);
         } catch (error) {
-          if (error.name !== "AbortError") {
-            els.status.textContent = "读取失败";
-            renderEmpty("目录读取失败", error.message || "无法读取这个目录。");
-          }
+          els.status.textContent = "读取失败";
+          renderEmpty("目录读取失败", error.message || "无法读取这个目录。");
+        } finally {
+          els.chooseDir.disabled = false;
+          els.chooseDir.textContent = "选择本地目录";
         }
       }
 
-      async function loadDirectory(rootHandle) {
+      async function loadDirectorySnapshot(snapshot) {
         try {
           setLoading(true, "正在解析目录");
           await waitForPaint();
           els.status.textContent = "扫描中";
           state.activePath = "";
-          state.rootHandle = rootHandle;
-          els.currentPath.textContent = rootHandle.name;
-
-          const snapshot = await readDirectorySnapshot(rootHandle);
-          state.files = snapshot.files;
-          state.tree = snapshot.tree;
+          state.rootPath = snapshot.rootPath;
+          state.expandedDirs.clear();
+          els.currentPath.textContent = snapshot.rootName || snapshot.rootPath;
+          state.files = snapshot.files || [];
+          state.tree = snapshot.tree || createTreeNode(snapshot.rootName || "已选择目录");
           els.status.textContent = `${state.files.length} 个 Markdown 文件`;
           renderNavigation();
+          connectDirectoryEvents();
           startDirectoryRefreshLoop();
 
           if (state.files[0]) {
@@ -1053,51 +1503,6 @@
           renderEmpty("目录读取失败", error.message || "无法读取这个目录。");
         } finally {
           setLoading(false);
-        }
-      }
-
-      async function readDirectorySnapshot(rootHandle) {
-        const files = [];
-        const tree = createTreeNode(rootHandle.name);
-        await scanDirectory(rootHandle, [], tree, files);
-        files.sort((a, b) => b.lastModified - a.lastModified);
-        return { files, tree };
-      }
-
-      async function scanDirectory(directoryHandle, pathParts, treeNode, filesAccumulator) {
-        const entries = [];
-        for await (const entry of directoryHandle.values()) {
-          entries.push(entry);
-        }
-
-        entries.sort((a, b) => {
-          if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
-          return a.name.localeCompare(b.name, "zh-CN");
-        });
-
-        for (const entry of entries) {
-          if (entry.kind === "directory") {
-            const child = createTreeNode(entry.name);
-            treeNode.dirs.push(child);
-            await scanDirectory(entry, [...pathParts, entry.name], child, filesAccumulator);
-            if (!child.dirs.length && !child.files.length) {
-              treeNode.dirs = treeNode.dirs.filter((dir) => dir !== child);
-            }
-            continue;
-          }
-
-          if (!isMarkdownFile(entry.name)) continue;
-
-          const file = await entry.getFile();
-          const item = {
-            name: entry.name,
-            path: [...pathParts, entry.name].join("/"),
-            lastModified: file.lastModified,
-            size: file.size,
-            handle: entry,
-          };
-          filesAccumulator.push(item);
-          treeNode.files.push(item);
         }
       }
 
@@ -1116,7 +1521,7 @@
         els.recentList.replaceChildren(
           ...files.map((file) => renderFileButton(file, { showTooltip: true })),
         );
-        els.treeList.replaceChildren(renderTreeNode(state.tree, true, 0));
+        els.treeList.replaceChildren(state.tree ? renderTreeNode(state.tree, true, []) : document.createDocumentFragment());
       }
 
       function getFilteredFiles() {
@@ -1144,7 +1549,7 @@
         return button;
       }
 
-      function renderTreeNode(node, isRoot = false, depth = 0) {
+      function renderTreeNode(node, isRoot = false, pathParts = []) {
         const container = document.createElement("div");
         container.className = isRoot ? "tree-root" : "tree-children";
 
@@ -1155,20 +1560,28 @@
           .map((entry) => entry.dir);
 
         if (!isRoot) {
+          const directoryPath = pathParts.join("/");
           const details = document.createElement("details");
-          details.open = Boolean(state.query);
+          details.open = Boolean(state.query) || state.expandedDirs.has(directoryPath);
+          details.addEventListener("toggle", () => {
+            if (details.open) {
+              state.expandedDirs.add(directoryPath);
+            } else {
+              state.expandedDirs.delete(directoryPath);
+            }
+          });
           const summary = document.createElement("summary");
           summary.textContent = node.name;
           details.append(summary);
           const children = document.createElement("div");
           children.className = "tree-children";
-          visibleDirs.forEach((dir) => children.append(renderTreeNode(dir, false, depth + 1)));
+          visibleDirs.forEach((dir) => children.append(renderTreeNode(dir, false, [...pathParts, dir.name])));
           visibleFiles.forEach((file) => children.append(renderFileButton(file)));
           details.append(children);
           return details;
         }
 
-        visibleDirs.forEach((dir) => container.append(renderTreeNode(dir, false, depth + 1)));
+        visibleDirs.forEach((dir) => container.append(renderTreeNode(dir, false, [dir.name])));
         visibleFiles.forEach((file) => container.append(renderFileButton(file)));
         return container;
       }
@@ -1187,14 +1600,24 @@
       async function openFile(file) {
         try {
           els.status.textContent = "读取中";
-          const blob = await file.handle.getFile();
-          const markdown = await blob.text();
+          const response = await fetch("/api/read-file", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ rootPath: state.rootPath, path: file.path }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(payload.error || "无法读取这个 Markdown 文件。");
+          }
+
+          const markdown = payload.markdown || "";
           state.activePath = file.path;
           state.currentFile = file;
           state.currentMarkdown = markdown;
           state.viewMode = "raw";
           state.aiErrorPath = "";
           state.aiErrorMessage = "";
+          await loadAnnotations(file.path);
           els.docName.textContent = file.name;
           els.docPath.textContent = `${file.path} · ${formatDate(file.lastModified)} · ${formatSize(file.size)}`;
           renderRawMarkdown();
@@ -1212,11 +1635,16 @@
         els.docPath.textContent = text;
         state.currentFile = null;
         state.currentMarkdown = "";
+        state.annotations = [];
+        state.annotationDraft = null;
         state.viewMode = "raw";
         state.aiErrorPath = "";
         state.aiErrorMessage = "";
         updateViewButtons();
         clearDocumentOutline();
+        renderAnnotationList();
+        closeAnnotationDrawer();
+        hideSelectionRecord();
         const empty = document.createElement("div");
         empty.className = "empty";
         empty.innerHTML = `
@@ -1229,6 +1657,11 @@
       }
 
       async function switchView(mode, options = {}) {
+        if (mode === "history") {
+          await renderAnnotationHistory();
+          return;
+        }
+
         if (!state.currentFile) return;
 
         if (mode === "raw") {
@@ -1259,11 +1692,14 @@
       function updateViewButtons() {
         els.rawView.classList.toggle("active", state.viewMode === "raw");
         els.aiView.classList.toggle("active", state.viewMode === "ai");
+        els.historyView.classList.toggle("active", state.viewMode === "history");
+        els.readingMode.closest(".mode-switch").style.display = state.viewMode === "history" ? "none" : "";
         const aiErrored = Boolean(state.aiErrorPath) && state.currentFile && state.aiErrorPath === state.currentFile.path;
         els.aiView.classList.toggle("error", aiErrored && state.viewMode !== "ai");
         els.regenerateAi.style.display = state.currentFile && state.viewMode === "ai" ? "" : "none";
         const aiPending = Boolean(state.aiPendingKey) && state.currentFile && state.aiPendingPath === state.currentFile.path;
-        els.aiView.disabled = aiPending;
+        els.rawView.disabled = !state.currentFile;
+        els.aiView.disabled = !state.currentFile || aiPending;
         els.aiView.textContent = aiPending ? "AI 生成中..." : aiErrored ? "AI 失败" : "AI 阅读版";
         els.aiView.title = "";
         els.aiView.dataset.error = aiErrored
@@ -1276,7 +1712,9 @@
         article.className = "markdown-body";
         article.insertAdjacentHTML("beforeend", markdownToHtml(state.currentMarkdown));
         els.contentShell.replaceChildren(article);
+        applyAnnotationHighlights(article);
         buildDocumentOutline();
+        renderAnnotationList();
         scrollContentTo("top", "auto");
       }
 
@@ -1296,13 +1734,14 @@
           const pendingFile = state.currentFile;
           const pendingMarkdown = state.currentMarkdown;
 
-          const response = await fetch("/api/ai-read", {
+        const response = await fetch("/api/ai-read", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               path: pendingFile.path,
               lastModified: pendingFile.lastModified,
               markdown: pendingMarkdown,
+              readingMode: state.readingMode,
             }),
           });
 
@@ -1338,26 +1777,33 @@
       }
 
       function renderAiReading(result) {
+        const summary = sanitizeTextBlock(result.summary || "");
+        const highlights = sanitizeItems(result.highlights);
+        const sections = sanitizeSections(result.sections);
+        const risks = sanitizeItems(result.risks);
+        const todos = sanitizeItems(result.todos);
+
         const article = document.createElement("article");
         article.className = "markdown-body ai-body";
         article.innerHTML = `
           <section class="ai-hero">
             <h1>${escapeHtml(result.title || state.currentFile.name)}</h1>
-            <p class="ai-summary">${inlineMarkdown(result.summary || "暂无摘要。")}</p>
+            ${summary ? `<p class="ai-summary">${inlineMarkdown(summary)}</p>` : ""}
           </section>
-          ${renderAiListSection("重点速览", result.highlights, "ai-pill-list")}
-          ${renderAiSections(result.sections)}
-          ${renderAiListSection("风险与待确认", result.risks)}
-          ${renderAiListSection("后续行动", result.todos)}
+          ${renderAiListSection("重点速览", highlights, "ai-pill-list")}
+          ${renderAiSections(sections)}
+          ${renderAiListSection("风险与待确认", risks)}
+          ${renderAiListSection("后续行动", todos)}
         `;
         els.contentShell.replaceChildren(article);
         buildDocumentOutline();
+        renderAnnotationList();
         scrollContentTo("top", "auto");
       }
 
       function renderAiSections(sections = []) {
         if (!sections.length) {
-          return `<section class="ai-section"><h2>内容整理</h2><p class="ai-empty">Codex 没有提炼出明确分区。</p></section>`;
+          return "";
         }
 
         return sections
@@ -1372,6 +1818,10 @@
       }
 
       function renderAiListSection(title, items = [], listClass = "") {
+        if (!items.length) {
+          return "";
+        }
+
         return `
           <section class="ai-section">
             <h2>${escapeHtml(title)}</h2>
@@ -1381,15 +1831,38 @@
       }
 
       function renderPlainList(items = [], listClass = "") {
-        if (!items.length) {
-          return `<p class="ai-empty">暂无。</p>`;
-        }
-
         return `
           <ul class="${escapeHtml(listClass)}">
             ${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}
           </ul>
         `;
+      }
+
+      function sanitizeItems(items = []) {
+        return (Array.isArray(items) ? items : [])
+          .map((item) => String(item || "").trim())
+          .map((item) => sanitizeTextBlock(item))
+          .filter(Boolean);
+      }
+
+      function sanitizeSections(sections = []) {
+        return (Array.isArray(sections) ? sections : [])
+          .map((section) => ({
+            title: String(section?.title || "").trim(),
+            content: sanitizeTextBlock(String(section?.content || "").trim()),
+            items: sanitizeItems(section?.items || []),
+          }))
+          .filter((section) => section.title || section.content || section.items.length);
+      }
+
+      function sanitizeTextBlock(value = "") {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        if (/^暂无(摘要|内容)?[。.]?$/u.test(text)) return "";
+        if (/^无(内容)?[。.]?$/u.test(text)) return "";
+        if (/^(未提炼出|没有提炼出).*[。.]?$/u.test(text)) return "";
+        if (/^codex 没有提炼出.*[。.]?$/iu.test(text)) return "";
+        return text;
       }
 
       function renderAiError(message) {
@@ -1402,6 +1875,561 @@
         `;
         els.contentShell.replaceChildren(article);
         clearDocumentOutline();
+      }
+
+      async function loadAnnotations(path) {
+        if (!state.rootPath || !path) {
+          state.annotations = [];
+          return;
+        }
+
+        const response = await fetch("/api/annotations/list", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ rootPath: state.rootPath, path }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || "无法读取注释。");
+        }
+        state.annotations = payload.annotations || [];
+      }
+
+      function handleTextSelection() {
+        if (!state.currentFile || state.viewMode !== "raw") {
+          hideSelectionRecord();
+          return;
+        }
+
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount !== 1 || selection.isCollapsed) {
+          hideSelectionRecord();
+          return;
+        }
+
+        const range = selection.getRangeAt(0);
+        const article = els.contentShell.querySelector(".markdown-body");
+        if (!article || !article.contains(range.commonAncestorContainer)) {
+          hideSelectionRecord();
+          return;
+        }
+
+        const quote = selection.toString().trim();
+        if (!quote) {
+          hideSelectionRecord();
+          return;
+        }
+
+        const offsets = getSelectionOffsets(article, range);
+        const fullText = article.textContent || "";
+        state.annotationDraft = {
+          quote,
+          note: "",
+          contextBefore: fullText.slice(Math.max(0, offsets.start - 80), offsets.start),
+          contextAfter: fullText.slice(offsets.end, offsets.end + 80),
+        };
+
+        const rect = range.getBoundingClientRect();
+        els.selectionRecord.style.left = `${Math.min(window.innerWidth - 84, Math.max(12, rect.left + rect.width / 2 - 28))}px`;
+        els.selectionRecord.style.top = `${Math.max(12, rect.top - 44)}px`;
+        els.selectionRecord.style.display = "block";
+      }
+
+      function getSelectionOffsets(root, range) {
+        const before = range.cloneRange();
+        before.selectNodeContents(root);
+        before.setEnd(range.startContainer, range.startOffset);
+        const start = before.toString().length;
+        return { start, end: start + range.toString().length };
+      }
+
+      function hideSelectionRecord() {
+        els.selectionRecord.style.display = "none";
+      }
+
+      function openAnnotationDrawer(annotation) {
+        if (!annotation) return;
+        state.annotationDraft = { ...annotation };
+        els.annotationQuote.textContent = annotation.quote || "";
+        els.annotationText.value = annotation.note || "";
+        els.annotationDelete.style.display = annotation.id ? "" : "none";
+        els.annotationDrawer.classList.add("visible");
+        hideSelectionRecord();
+        window.getSelection()?.removeAllRanges();
+        els.annotationText.focus();
+      }
+
+      function closeAnnotationDrawer() {
+        els.annotationDrawer.classList.remove("visible");
+        state.annotationDraft = null;
+      }
+
+      async function saveCurrentAnnotation() {
+        if (!state.currentFile || !state.annotationDraft) return;
+        const note = els.annotationText.value.trim();
+        if (!note) {
+          showToast("记录内容不能为空。", "知道了", null, { tone: "error" });
+          return;
+        }
+
+        const response = await fetch("/api/annotations/save", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            rootPath: state.rootPath,
+            path: state.currentFile.path,
+            annotation: { ...state.annotationDraft, note },
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          showToast(payload.error || "保存记录失败。", "知道了", null, { tone: "error" });
+          return;
+        }
+
+        state.annotations = payload.annotations || [];
+        closeAnnotationDrawer();
+        renderCurrentViewAfterAnnotationChange();
+        showToast("记录已保存。");
+      }
+
+      async function deleteCurrentAnnotation() {
+        if (!state.currentFile || !state.annotationDraft?.id) return;
+        const response = await fetch("/api/annotations/delete", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            rootPath: state.rootPath,
+            path: state.currentFile.path,
+            id: state.annotationDraft.id,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          showToast(payload.error || "删除记录失败。", "知道了", null, { tone: "error" });
+          return;
+        }
+
+        state.annotations = payload.annotations || [];
+        closeAnnotationDrawer();
+        renderCurrentViewAfterAnnotationChange();
+        showToast("记录已删除。");
+      }
+
+      function renderCurrentViewAfterAnnotationChange() {
+        if (state.viewMode === "ai" && state.currentFile) {
+          const cached = getAiCache(getAiCacheKey(state.currentFile));
+          if (cached) {
+            renderAiReading(cached);
+            return;
+          }
+        }
+
+        state.viewMode = "raw";
+        updateViewButtons();
+        renderRawMarkdown();
+      }
+
+      async function renderAnnotationHistory() {
+        state.viewMode = "history";
+        updateViewButtons();
+        hideSelectionRecord();
+        closeAnnotationDrawer();
+        els.status.textContent = "读取历史注释";
+        els.docName.textContent = "历史注释";
+        els.docPath.textContent = "正在读取全局记录";
+        clearDocumentOutline();
+
+        try {
+          const response = await fetch("/api/annotations/all");
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(payload.error || "无法读取历史注释。");
+          }
+
+          state.annotationHistory = payload.documents || [];
+          state.annotationStorePath = payload.storePath || "~/.markdown-viewer/annotations.json";
+          renderAnnotationHistoryPage(payload.count || 0);
+          els.docPath.textContent = `${state.annotationStorePath} · ${payload.count || 0} 条记录`;
+          els.status.textContent = "历史注释";
+          scrollContentTo("top", "auto");
+        } catch (error) {
+          const article = document.createElement("article");
+          article.className = "history-body";
+          article.innerHTML = `
+            <section class="history-empty">
+              <h2>历史注释读取失败</h2>
+              <p>${escapeHtml(error.message || "无法读取历史注释。")}</p>
+            </section>
+          `;
+          els.contentShell.replaceChildren(article);
+          els.docPath.textContent = error.message || "无法读取历史注释。";
+          els.status.textContent = "读取失败";
+        }
+      }
+
+      function renderAnnotationHistoryPage(count) {
+        const article = document.createElement("article");
+        article.className = "history-body";
+
+        const header = document.createElement("section");
+        header.className = "history-header";
+        header.innerHTML = `
+          <div class="history-header-main">
+            <h2>历史注释</h2>
+            <p>${escapeHtml(state.annotationStorePath || "~/.markdown-viewer/annotations.json")}</p>
+          </div>
+          <div class="history-header-actions">
+            <div class="history-mode-switch" aria-label="历史注释展示方式">
+              <button class="history-mode-button ${state.annotationHistoryMode === "grouped" ? "active" : ""}" type="button" data-history-mode="grouped">按文档</button>
+              <button class="history-mode-button ${state.annotationHistoryMode === "flat" ? "active" : ""}" type="button" data-history-mode="flat">单行</button>
+            </div>
+            <button class="jump-button" type="button" data-history-copy ${count ? "" : "disabled"}>复制全部</button>
+            <span class="history-count">${count} 条</span>
+          </div>
+        `;
+        header.querySelectorAll("[data-history-mode]").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.annotationHistoryMode = button.dataset.historyMode || "grouped";
+            renderAnnotationHistoryPage(count);
+          });
+        });
+        header.querySelector("[data-history-copy]").addEventListener("click", copyHistoryNotes);
+        article.append(header);
+
+        if (!state.annotationHistory.length) {
+          const empty = document.createElement("section");
+          empty.className = "history-empty";
+          empty.innerHTML = `
+            <h2>还没有历史注释</h2>
+            <p>在任意 Markdown 文档里选中文字并点击“记录”后，会出现在这里。</p>
+          `;
+          article.append(empty);
+          els.contentShell.replaceChildren(article);
+          return;
+        }
+
+        if (state.annotationHistoryMode === "flat") {
+          article.append(renderHistoryFlatNotes());
+        } else {
+          state.annotationHistory.forEach((historyDocument) => {
+            article.append(renderHistoryDocument(historyDocument));
+          });
+        }
+        els.contentShell.replaceChildren(article);
+      }
+
+      function renderHistoryFlatNotes() {
+        const section = document.createElement("section");
+        section.className = "history-flat";
+
+        const textarea = document.createElement("textarea");
+        textarea.className = "history-flat-textarea";
+        textarea.readOnly = true;
+        textarea.spellcheck = false;
+        textarea.value = historyNotesText();
+        section.append(textarea);
+        return section;
+      }
+
+      function renderHistoryDocument(historyDocument) {
+        const section = document.createElement("section");
+        section.className = "history-document";
+        section.innerHTML = `
+          <div class="history-document-header">
+            <div>
+              <h3>${escapeHtml(historyDocument.fileName || historyDocument.path)}</h3>
+              <p>${escapeHtml(historyDocument.path)} · ${escapeHtml(historyDocument.rootName || historyDocument.rootPath)}</p>
+            </div>
+            <span>${historyDocument.annotations.length} 条</span>
+          </div>
+        `;
+
+        const list = document.createElement("div");
+        list.className = "history-list";
+        historyDocument.annotations
+          .slice()
+          .sort((a, b) => Date.parse(b.updatedAt || b.createdAt || 0) - Date.parse(a.updatedAt || a.createdAt || 0))
+          .forEach((annotation) => {
+            list.append(renderHistoryAnnotation(historyDocument, annotation));
+          });
+        section.append(list);
+        return section;
+      }
+
+      function renderHistoryAnnotation(historyDocument, annotation) {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `
+          <div class="history-item-main">
+            <div class="history-quote">${escapeHtml(annotation.quote)}</div>
+            <div class="history-note">${escapeHtml(annotation.note)}</div>
+            <div class="history-meta">${escapeHtml(formatDate(annotation.updatedAt || annotation.createdAt))} · ${escapeHtml(historyDocument.rootPath)}</div>
+          </div>
+        `;
+
+        const action = document.createElement("button");
+        action.className = "jump-button";
+        action.type = "button";
+        action.textContent = "打开";
+        action.addEventListener("click", () => openHistoryAnnotation(historyDocument, annotation));
+        item.append(action);
+        return item;
+      }
+
+      async function openHistoryAnnotation(historyDocument, annotation) {
+        if (state.rootPath !== historyDocument.rootPath) {
+          showToast("请先选择这条记录所在的目录。", "知道了", null, { tone: "error" });
+          return;
+        }
+
+        const file = state.files.find((item) => item.path === historyDocument.path);
+        if (!file) {
+          showToast("当前目录里没有找到这篇文档。", "知道了", null, { tone: "error" });
+          return;
+        }
+
+        await openFile(file);
+        switchAnnotationPanel("annotations");
+        setTimeout(() => {
+          scrollAnnotationIntoView(annotation.id);
+          openAnnotationDrawer(state.annotations.find((item) => item.id === annotation.id) || annotation);
+        }, 80);
+      }
+
+      async function copyHistoryNotes() {
+        const text = historyNotesText();
+        if (!text) {
+          showToast("没有可复制的注释。", "知道了");
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast("已复制全部注释。");
+        } catch {
+          state.annotationHistoryMode = "flat";
+          renderAnnotationHistoryPage(flattenedHistoryAnnotations().length);
+          const textarea = els.contentShell.querySelector(".history-flat-textarea");
+          if (textarea) {
+            textarea.focus();
+            textarea.select();
+          }
+          showToast("已选中注释内容，可直接复制。");
+        }
+      }
+
+      function historyNotesText() {
+        return flattenedHistoryAnnotations()
+          .map(({ annotation }) => singleLineAnnotation(annotation.note))
+          .filter(Boolean)
+          .join("\n");
+      }
+
+      function flattenedHistoryAnnotations() {
+        return state.annotationHistory
+          .flatMap((historyDocument) =>
+            (historyDocument.annotations || []).map((annotation) => ({
+              historyDocument,
+              annotation,
+            })),
+          )
+          .sort((a, b) =>
+            Date.parse(b.annotation.updatedAt || b.annotation.createdAt || 0) -
+            Date.parse(a.annotation.updatedAt || a.annotation.createdAt || 0),
+          );
+      }
+
+      function singleLineAnnotation(value) {
+        return String(value || "").replace(/\s+/g, " ").trim();
+      }
+
+      function renderAnnotationList() {
+        els.annotationList.replaceChildren(
+          ...state.annotations.map((annotation) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "annotation-item";
+            button.innerHTML = `
+              <span class="annotation-quote">${escapeHtml(annotation.quote)}</span>
+              <span class="annotation-note">${escapeHtml(annotation.note)}</span>
+            `;
+            button.addEventListener("click", () => {
+              scrollAnnotationIntoView(annotation.id);
+              openAnnotationDrawer(annotation);
+            });
+            return button;
+          }),
+        );
+        updateSidePanelVisibility();
+      }
+
+      function applyAnnotationHighlights(article) {
+        if (!state.annotations.length) return;
+
+        const textNodes = collectTextNodes(article);
+        const fullText = textNodes.map((node) => node.nodeValue).join("");
+        const ranges = state.annotations
+          .map((annotation) => ({
+            annotation,
+            index: locateAnnotationIndex(fullText, annotation),
+          }))
+          .filter((entry) => entry.index >= 0)
+          .map(({ annotation, index }) => ({
+            annotation,
+            start: index,
+            end: index + annotation.quote.length,
+          }))
+          .sort((a, b) => a.start - b.start);
+
+        wrapAnnotationTextSegments(textNodes, ranges);
+      }
+
+      function collectTextNodes(root) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        let node = walker.nextNode();
+        while (node) {
+          nodes.push(node);
+          node = walker.nextNode();
+        }
+        return nodes;
+      }
+
+      function wrapAnnotationTextSegments(textNodes, ranges) {
+        const segmentsByNode = new Map();
+        let cursor = 0;
+
+        for (const node of textNodes) {
+          const nodeStart = cursor;
+          const nodeEnd = cursor + node.nodeValue.length;
+          cursor = nodeEnd;
+
+          for (const range of ranges) {
+            if (range.end <= nodeStart) continue;
+            if (range.start >= nodeEnd) break;
+
+            const start = Math.max(range.start, nodeStart) - nodeStart;
+            const end = Math.min(range.end, nodeEnd) - nodeStart;
+            const text = node.nodeValue.slice(start, end);
+            if (!text.trim()) continue;
+
+            const segments = segmentsByNode.get(node) || [];
+            segments.push({ start, end, annotation: range.annotation });
+            segmentsByNode.set(node, segments);
+          }
+        }
+
+        for (const [node, segments] of segmentsByNode) {
+          wrapNodeSegments(node, segments);
+        }
+      }
+
+      function wrapNodeSegments(node, segments) {
+        if (!node.parentNode) return;
+        const accepted = [];
+        let nextStart = node.nodeValue.length + 1;
+
+        segments
+          .sort((a, b) => b.start - a.start || b.end - a.end)
+          .forEach((segment) => {
+            if (segment.end <= nextStart) {
+              accepted.push(segment);
+              nextStart = segment.start;
+            }
+          });
+
+        let source = node;
+        for (const segment of accepted) {
+          if (!source.parentNode || segment.end > source.nodeValue.length) continue;
+
+          source.splitText(segment.end);
+          const target = source.splitText(segment.start);
+          const mark = document.createElement("span");
+          mark.className = "annotation-mark";
+          mark.dataset.annotationId = segment.annotation.id;
+          mark.title = segment.annotation.note;
+          mark.addEventListener("click", () => openAnnotationDrawer(segment.annotation));
+          mark.setAttribute("role", "button");
+          mark.tabIndex = 0;
+          target.parentNode.insertBefore(mark, target);
+          mark.append(target);
+        }
+      }
+
+      function locateAnnotationIndex(fullText, annotation) {
+        const quote = annotation.quote || "";
+        if (!quote) return -1;
+
+        const indexes = [];
+        let index = fullText.indexOf(quote);
+        while (index >= 0) {
+          indexes.push(index);
+          index = fullText.indexOf(quote, index + quote.length);
+        }
+        if (!indexes.length) return -1;
+        if (indexes.length === 1) return indexes[0];
+
+        return indexes
+          .map((candidate) => ({
+            candidate,
+            score:
+              contextScore(fullText, candidate, annotation.contextBefore, "before") +
+              contextScore(fullText, candidate + quote.length, annotation.contextAfter, "after"),
+          }))
+          .sort((a, b) => b.score - a.score)[0].candidate;
+      }
+
+      function contextScore(fullText, index, context, side) {
+        if (!context) return 0;
+        const sample = side === "before"
+          ? fullText.slice(Math.max(0, index - context.length), index)
+          : fullText.slice(index, index + context.length);
+        let score = 0;
+        const max = Math.min(sample.length, context.length);
+        for (let i = 0; i < max; i += 1) {
+          const sampleChar = side === "before" ? sample[sample.length - 1 - i] : sample[i];
+          const contextChar = side === "before" ? context[context.length - 1 - i] : context[i];
+          if (sampleChar !== contextChar) break;
+          score += 1;
+        }
+        return score;
+      }
+
+      function createTextRange(textNodes, start, end) {
+        let cursor = 0;
+        let startNode = null;
+        let startOffset = 0;
+        let endNode = null;
+        let endOffset = 0;
+
+        for (const node of textNodes) {
+          const next = cursor + node.nodeValue.length;
+          if (!startNode && start >= cursor && start <= next) {
+            startNode = node;
+            startOffset = start - cursor;
+          }
+          if (!endNode && end >= cursor && end <= next) {
+            endNode = node;
+            endOffset = end - cursor;
+            break;
+          }
+          cursor = next;
+        }
+
+        if (!startNode || !endNode) return null;
+        const range = document.createRange();
+        range.setStart(startNode, startOffset);
+        range.setEnd(endNode, endOffset);
+        return range;
+      }
+
+      function scrollAnnotationIntoView(annotationId) {
+        const mark = els.contentShell.querySelector(`.annotation-mark[data-annotation-id="${CSS.escape(annotationId)}"]`);
+        if (!mark) return;
+        mark.classList.add("active");
+        mark.scrollIntoView({ block: "center", behavior: "smooth" });
+        setTimeout(() => mark.classList.remove("active"), 1200);
       }
 
       function showToast(message, actionLabel = "知道了", action = null, options = {}) {
@@ -1430,7 +2458,22 @@
       }
 
       function getAiCacheKey(file) {
-        return `ai-reading:${file.path}:${file.lastModified}:${file.size}`;
+        return `ai-reading:${AI_CACHE_VERSION}:${state.readingMode}:${file.path}:${file.lastModified}:${file.size}`;
+      }
+
+      function readingModeLabel(mode) {
+        switch (mode) {
+          case "general":
+            return "通用模式";
+          case "task":
+            return "任务文档模式";
+          case "api":
+            return "接口文档模式";
+          case "design":
+            return "设计文档模式";
+          default:
+            return "自动模式";
+        }
       }
 
       function getAiCache(key) {
@@ -1485,14 +2528,36 @@
             return button;
           }),
         );
-        els.docOutline.classList.add("visible");
-        els.docOutline.closest(".viewer").classList.add("outline-visible");
+        updateSidePanelVisibility();
       }
 
       function clearDocumentOutline() {
         els.outlineList.replaceChildren();
-        els.docOutline.classList.remove("visible");
-        els.docOutline.closest(".viewer").classList.remove("outline-visible");
+        updateSidePanelVisibility();
+      }
+
+      function switchAnnotationPanel(tab) {
+        state.annotationPanelTab = tab;
+        els.outlineTab.classList.toggle("active", tab === "outline");
+        els.annotationTab.classList.toggle("active", tab === "annotations");
+        els.outlineList.hidden = tab !== "outline";
+        els.annotationList.hidden = tab !== "annotations";
+      }
+
+      function updateSidePanelVisibility() {
+        if (state.viewMode === "history") {
+          els.docOutline.classList.remove("visible");
+          els.docOutline.closest(".viewer").classList.remove("outline-visible");
+          return;
+        }
+
+        const hasOutline = els.outlineList.children.length > 0;
+        const hasAnnotations = state.annotations.length > 0;
+        els.annotationTab.textContent = `注释${hasAnnotations ? ` ${state.annotations.length}` : ""}`;
+        els.docOutline.classList.toggle("visible", hasOutline || hasAnnotations);
+        els.docOutline.closest(".viewer").classList.toggle("outline-visible", hasOutline || hasAnnotations);
+        if (!hasOutline && hasAnnotations) switchAnnotationPanel("annotations");
+        if (hasOutline && state.annotationPanelTab !== "annotations") switchAnnotationPanel("outline");
       }
 
       function scrollHeadingIntoView(heading) {
@@ -1668,26 +2733,6 @@
         return escaped;
       }
 
-      async function restoreSavedDirectory() {
-        if (!("showDirectoryPicker" in window)) return;
-
-        const savedHandle = await getSavedDirectoryHandle();
-        if (!savedHandle) return;
-
-        els.currentPath.textContent = `已保存：${savedHandle.name}`;
-        els.chooseDir.textContent = "打开上次目录";
-
-        const permission = await savedHandle.queryPermission({ mode: "read" });
-        if (permission === "granted") {
-          await loadDirectory(savedHandle);
-          return;
-        }
-
-        els.status.textContent = "等待目录授权";
-        renderEmpty("已记住上次目录", "点击左侧按钮重新授权后即可恢复浏览。");
-        state.savedHandleAwaitingPermission = savedHandle;
-      }
-
       function setLoading(isLoading, text = "正在处理") {
         els.loadingText.textContent = text;
         els.app.classList.toggle("loading", isLoading);
@@ -1702,19 +2747,59 @@
         }, 30000);
       }
 
+      function stopDirectoryRefreshLoop() {
+        if (!state.refreshTimer) return;
+        clearInterval(state.refreshTimer);
+        state.refreshTimer = null;
+      }
+
+      function connectDirectoryEvents() {
+        if (state.eventSource) return;
+
+        const source = new EventSource("/api/events");
+        state.eventSource = source;
+
+        source.addEventListener("directory-changed", (event) => {
+          const payload = JSON.parse(event.data || "{}");
+          if (!state.rootPath || payload.rootPath !== state.rootPath) return;
+
+          els.status.textContent = "检测到目录更新";
+          if (state.eventRefreshTimer) clearTimeout(state.eventRefreshTimer);
+          state.eventRefreshTimer = setTimeout(() => {
+            state.eventRefreshTimer = null;
+            refreshDirectoryIfNeeded();
+          }, 300);
+        });
+
+        source.addEventListener("directory-watch-error", (event) => {
+          const payload = JSON.parse(event.data || "{}");
+          if (!state.rootPath || payload.rootPath !== state.rootPath) return;
+          showToast(payload.message || "目录监听失败，将继续使用定时同步。", "知道了", null, { tone: "error" });
+        });
+      }
+
       async function refreshDirectoryIfNeeded() {
-        if (!state.rootHandle || state.refreshInFlight) return;
+        if (!state.rootPath || state.refreshInFlight) return;
         state.refreshInFlight = true;
 
         try {
-          const snapshot = await readDirectorySnapshot(state.rootHandle);
+          const response = await fetch("/api/read-directory", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ rootPath: state.rootPath }),
+          });
+          const snapshot = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(snapshot.error || "自动同步失败");
+          }
+
           const nextSignature = snapshot.files.map((file) => `${file.path}:${file.lastModified}:${file.size}`).join("|");
           const currentSignature = state.files.map((file) => `${file.path}:${file.lastModified}:${file.size}`).join("|");
 
           if (nextSignature === currentSignature) return;
 
           state.files = snapshot.files;
-          state.tree = snapshot.tree;
+          state.tree = snapshot.tree || createTreeNode(snapshot.rootName || "已选择目录");
           renderNavigation();
           els.status.textContent = `${state.files.length} 个 Markdown 文件，已同步更新`;
 
@@ -1731,6 +2816,11 @@
             matched.lastModified !== state.currentFile.lastModified ||
             matched.size !== state.currentFile.size
           ) {
+            if (state.viewMode === "history") {
+              state.currentFile = matched;
+              return;
+            }
+
             const wasAi = state.viewMode === "ai";
             await openFile(matched);
             showToast(
@@ -1787,41 +2877,6 @@
         const nextWidth = Math.max(280, Math.min(width, maxWidth));
         document.documentElement.style.setProperty("--sidebar-width", `${nextWidth}px`);
         return nextWidth;
-      }
-
-      async function saveDirectoryHandle(handle) {
-        const db = await openDirectoryDb();
-        return new Promise((resolve, reject) => {
-          const tx = db.transaction(directoryStore.storeName, "readwrite");
-          tx.objectStore(directoryStore.storeName).put(handle, directoryStore.key);
-          tx.oncomplete = () => resolve();
-          tx.onerror = () => reject(tx.error);
-        });
-      }
-
-      async function getSavedDirectoryHandle() {
-        try {
-          const db = await openDirectoryDb();
-          return await new Promise((resolve, reject) => {
-            const tx = db.transaction(directoryStore.storeName, "readonly");
-            const request = tx.objectStore(directoryStore.storeName).get(directoryStore.key);
-            request.onsuccess = () => resolve(request.result || null);
-            request.onerror = () => reject(request.error);
-          });
-        } catch {
-          return null;
-        }
-      }
-
-      function openDirectoryDb() {
-        return new Promise((resolve, reject) => {
-          const request = indexedDB.open(directoryStore.dbName, 1);
-          request.onupgradeneeded = () => {
-            request.result.createObjectStore(directoryStore.storeName);
-          };
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
-        });
       }
 
       function escapeHtml(value) {
