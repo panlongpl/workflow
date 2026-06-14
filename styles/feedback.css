@@ -1,0 +1,95 @@
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-items: center;
+  background: rgba(246, 247, 244, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.toast {
+  position: absolute;
+  right: 18px;
+  bottom: 74px;
+  z-index: 4;
+  min-width: 280px;
+  max-width: min(420px, calc(100% - 36px));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 40px rgba(31, 41, 51, 0.14);
+  padding: 12px;
+  display: none;
+  gap: 10px;
+}
+
+.toast.visible {
+  display: grid;
+}
+
+.toast.error {
+  border-color: rgba(180, 35, 24, 0.25);
+  background: rgba(254, 243, 242, 0.98);
+}
+
+.toast.error .toast-message {
+  color: var(--danger);
+}
+
+.toast-message {
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.toast-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.bottom-jump {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 3;
+  box-shadow: 0 10px 24px rgba(31, 41, 51, 0.13);
+}
+
+.app.loading .loading-overlay {
+  display: grid;
+}
+
+.loading-panel {
+  min-width: 240px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 20px 22px;
+  box-shadow: 0 18px 54px rgba(31, 41, 51, 0.14);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
