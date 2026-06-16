@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "test:hub": "node --test lib/__tests__/agent-session-hub.test.mjs"
   },
   "type": "module",
   "dependencies": {
