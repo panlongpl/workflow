@@ -420,11 +420,3 @@ body.terminal-view-fullscreen .app.module-terminal .agent-terminal-mount .xterm-
   font-size: 12px;
   cursor: pointer;
 }
-
-.agent-session-statusbar {
-  padding: 6px 14px;
-  font-size: 12px;
-  background: rgba(7, 23, 36, 0.78);
-  color: rgba(220, 235, 242, 0.7);
-  border-bottom: 1px solid rgba(125, 182, 216, 0.12);
-}

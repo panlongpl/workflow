@@ -41,7 +41,6 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   let cocoSlashCommandSelectedCommand = "";
   let suppressTerminalData = false;
   let tabsBar = null;
-  let statusBar = null;
   let sessions = [];
   let primaryId = null;
   let activeSessionId = null;
@@ -95,7 +94,6 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
 
       <section class="agent-session-panel" data-agent-session hidden>
         <div class="agent-session-tabs" data-agent-session-tabs></div>
-        <div class="agent-session-statusbar" data-agent-session-statusbar></div>
         <div class="agent-terminal-card">
           <div class="agent-terminal-mount" data-terminal-mount>
             <div class="agent-coco-caret" data-coco-caret hidden></div>
@@ -111,7 +109,6 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     customCommandInput = element.querySelector("#customAgentCommand");
     cocoCaret = element.querySelector("[data-coco-caret]");
     tabsBar = element.querySelector("[data-agent-session-tabs]");
-    statusBar = element.querySelector("[data-agent-session-statusbar]");
 
     element.querySelectorAll("[data-agent]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -337,7 +334,6 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
         }
       }
       renderSessionTabs();
-      renderStatusBar();
       notifyAvailabilityChange();
       return;
     }
@@ -503,21 +499,6 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       showSessionPicker();
     });
     tabsBar.appendChild(newButton);
-  }
-
-  function renderStatusBar() {
-    if (!statusBar) return;
-    const primary = sessions.find((s) => s.id === primaryId);
-    const active = sessions.find((s) => s.id === activeSessionId);
-    if (!primary && !active) {
-      statusBar.textContent = "暂无 Agent 会话，点击右上角「+ 新建」创建一个";
-      return;
-    }
-    if (!primary) {
-      statusBar.textContent = `无主会话 · 当前查看：${active?.name || "-"}`;
-      return;
-    }
-    statusBar.textContent = `主会话：${primary.name}（${primary.status}） · 当前查看：${active?.name || "-"}`;
   }
 
   function switchToSession(id) {
