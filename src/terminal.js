@@ -39,6 +39,13 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   let cocoCaretUpdateId = 0;
   let cocoSlashCommandSelectionIndex = 0;
   let cocoSlashCommandSelectedCommand = "";
+  let suppressTerminalData = false;
+  let tabsBar = null;
+  let statusBar = null;
+  let sessions = [];
+  let primaryId = null;
+  let activeSessionId = null;
+  let renamingSessionId = null;
 
   function render(container) {
     if (!page) {
@@ -48,6 +55,7 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     container.replaceChildren(page);
     syncCwd();
     renderCurrentState();
+    ensureSocketAttached();
     if (sessionState) scheduleFit();
     notifyAvailabilityChange();
   }
@@ -86,6 +94,8 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       </section>
 
       <section class="agent-session-panel" data-agent-session hidden>
+        <div class="agent-session-tabs" data-agent-session-tabs></div>
+        <div class="agent-session-statusbar" data-agent-session-statusbar></div>
         <div class="agent-terminal-card">
           <div class="agent-terminal-mount" data-terminal-mount>
             <div class="agent-coco-caret" data-coco-caret hidden></div>
@@ -100,6 +110,8 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     customForm = element.querySelector("[data-custom-agent-form]");
     customCommandInput = element.querySelector("#customAgentCommand");
     cocoCaret = element.querySelector("[data-coco-caret]");
+    tabsBar = element.querySelector("[data-agent-session-tabs]");
+    statusBar = element.querySelector("[data-agent-session-statusbar]");
 
     element.querySelectorAll("[data-agent]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -152,7 +164,25 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     if (!agents[agent]) return;
 
     const command = agent === "custom" ? String(options.command || "").trim() : "";
-    stopSocket();
+    if (agent === "custom" && !command) {
+      customCommandInput?.focus();
+      return;
+    }
+    ensureSocketAttached();
+    const dimensions = getTerminalDimensions();
+    const send = () => sendSocket({
+      type: "start_session",
+      agent,
+      command,
+      cwd: getCwd(),
+      cols: dimensions.cols,
+      rows: dimensions.rows,
+    });
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      send();
+    } else if (socket) {
+      socket.addEventListener("open", () => send(), { once: true });
+    }
     selectedAgent = agent;
     customCommand = command;
     lastLaunchTarget = { agent, command };
@@ -176,7 +206,6 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     terminal.writeln(`工作目录: ${getCwd()}`);
     terminal.writeln("");
     notifyAvailabilityChange();
-    connectSocket(agent, { command });
     scheduleFit();
   }
 
@@ -188,31 +217,31 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       cursorBlink: true,
       cursorInactiveStyle: "block",
       cursorStyle: "block",
-      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-      fontSize: 14,
-      lineHeight: 1.25,
+      fontFamily: "JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      fontSize: 13,
+      lineHeight: 1.34,
       scrollback: 8000,
       tabStopWidth: 4,
       theme: {
-        background: "#090d18",
-        foreground: "#e5edf7",
-        cursor: "#5eead4",
-        selectionBackground: "#31556b",
-        black: "#0b1020",
-        red: "#fb7185",
-        green: "#34d399",
-        yellow: "#facc15",
-        blue: "#60a5fa",
-        magenta: "#c084fc",
-        cyan: "#22d3ee",
-        white: "#e5edf7",
-        brightBlack: "#64748b",
-        brightRed: "#fda4af",
-        brightGreen: "#86efac",
-        brightYellow: "#fde68a",
-        brightBlue: "#93c5fd",
-        brightMagenta: "#d8b4fe",
-        brightCyan: "#67e8f9",
+        background: "#071724",
+        foreground: "#dcebf2",
+        cursor: "#8fd1df",
+        selectionBackground: "#24475c",
+        black: "#071724",
+        red: "#f08b8b",
+        green: "#71d6a0",
+        yellow: "#e8c56a",
+        blue: "#7db6d8",
+        magenta: "#b9a3dc",
+        cyan: "#8fd1df",
+        white: "#dcebf2",
+        brightBlack: "#6e8594",
+        brightRed: "#ffb0b0",
+        brightGreen: "#9be7bd",
+        brightYellow: "#f2d992",
+        brightBlue: "#a6d0ea",
+        brightMagenta: "#d0c1ed",
+        brightCyan: "#b4e5ed",
         brightWhite: "#ffffff",
       },
     });
@@ -220,7 +249,8 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     terminal.loadAddon(fitAddon);
     terminal.open(terminalMount);
     terminal.onData((data) => {
-      sendSocket({ type: "terminal_input", data });
+      if (suppressTerminalData) return;
+      sendSocket({ type: "terminal_input", id: activeSessionId, data });
       requestCursorRestore();
       updateCocoEditingState(data);
       scheduleCocoCaretUpdate();
@@ -233,22 +263,21 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     resizeObserver.observe(terminalMount);
   }
 
-  function connectSocket(agent, options = {}) {
+  function ensureSocketAttached() {
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
+    connectSocket();
+  }
+
+  function connectSocket() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     socket = new WebSocket(`${protocol}//${window.location.host}/api/agent`);
     const currentSocket = socket;
 
     socket.addEventListener("open", () => {
       if (socket !== currentSocket) return;
-      const dimensions = getTerminalDimensions();
-      socket.send(JSON.stringify({
-        type: "start_session",
-        agent,
-        command: options.command || "",
-        cwd: getCwd(),
-        cols: dimensions.cols,
-        rows: dimensions.rows,
-      }));
+      sendSocket({ type: "list_sessions" });
+      const stored = localStorage.getItem("workflow-active-session-id");
+      if (stored) sendSocket({ type: "attach_session", id: stored });
     });
 
     socket.addEventListener("message", (event) => {
@@ -258,19 +287,17 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
 
     socket.addEventListener("close", () => {
       if (socket !== currentSocket) return;
+      socket = null;
       sessionState = "closed";
-      setSessionStatus("已断开");
       setStatus("AI 终端已断开");
-      terminal?.writeln("\r\n[连接已断开]");
       notifyAvailabilityChange();
     });
 
     socket.addEventListener("error", () => {
       if (socket !== currentSocket) return;
+      socket = null;
       sessionState = "closed";
-      setSessionStatus("连接失败");
       setStatus("AI 终端连接失败");
-      terminal?.writeln("\r\n[WebSocket 连接失败，请确认本地服务已启动]");
       notifyAvailabilityChange();
     });
   }
@@ -285,19 +312,86 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
 
     if (message.type === "connected") return;
 
+    if (message.type === "sessions_list") {
+      sessions = Array.isArray(message.sessions) ? message.sessions : [];
+      primaryId = message.primaryId || null;
+      if (activeSessionId && !sessions.find((s) => s.id === activeSessionId)) {
+        activeSessionId = null;
+        sessionState = null;
+        selectedAgent = "";
+        customCommand = "";
+        selectView.hidden = false;
+        sessionView.hidden = true;
+      }
+      renderSessionTabs();
+      renderStatusBar();
+      notifyAvailabilityChange();
+      return;
+    }
+
     if (message.type === "session_started") {
+      activeSessionId = message.id;
+      selectedAgent = message.agent;
+      customCommand = message.agent === "custom" ? String(message.command || "") : "";
+      lastLaunchTarget = { agent: selectedAgent, command: customCommand };
+      showCocoCaret = shouldUseCocoCaret(selectedAgent, customCommand);
       sessionState = "running";
+      selectView.hidden = true;
+      sessionView.hidden = false;
+      ensureTerminal();
+      terminal.reset();
+      try { localStorage.setItem("workflow-active-session-id", activeSessionId); } catch {}
       setSessionStatus("运行中");
-      setStatus(`${message.label || agents[selectedAgent].label} 已启动`);
+      setStatus(`${message.label || message.name || "Agent"} 已启动`);
       fitAndResize();
-      terminal?.focus();
+      terminal.focus();
       requestCursorRestore();
       scheduleCocoCaretUpdate();
       notifyAvailabilityChange();
       return;
     }
 
+    if (message.type === "session_attached") {
+      activeSessionId = message.id;
+      selectedAgent = message.agent;
+      customCommand = message.agent === "custom" ? String(message.command || "") : "";
+      lastLaunchTarget = { agent: selectedAgent, command: customCommand };
+      showCocoCaret = shouldUseCocoCaret(selectedAgent, customCommand);
+      cocoInputEditing = false;
+      cocoSlashCommandSelectionIndex = 0;
+      cocoSlashCommandSelectedCommand = "";
+      clearCocoSlashCommandHighlight();
+      hideCocoCaret();
+      sessionState = "running";
+      selectView.hidden = true;
+      sessionView.hidden = false;
+      ensureTerminal();
+      terminal.reset();
+      try { localStorage.setItem("workflow-active-session-id", activeSessionId); } catch {}
+      const output = String(message.output || "");
+      if (output) {
+        suppressTerminalData = true;
+        terminal.write(keepCursorVisible(output), () => {
+          suppressTerminalData = false;
+          requestCursorRestore();
+          scheduleCocoCaretUpdate();
+        });
+        window.setTimeout(() => {
+          suppressTerminalData = false;
+        }, 1000);
+      } else {
+        terminal.writeln(`[已连接到 ${message.label || message.name || "Agent"} 共享会话]`);
+      }
+      setSessionStatus("运行中");
+      setStatus(`${message.label || message.name || "Agent"} 已连接`);
+      fitAndResize();
+      terminal.focus();
+      notifyAvailabilityChange();
+      return;
+    }
+
     if (message.type === "terminal_output") {
+      if (message.id && message.id !== activeSessionId) return;
       writeTerminalOutput(message.data || "");
       return;
     }
@@ -307,27 +401,134 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       return;
     }
 
-    if (message.type === "status") {
-      setSessionStatus(message.message || message.status || "运行中");
-      return;
-    }
-
     if (message.type === "session_closed") {
-      sessionState = "closed";
-      setSessionStatus("已结束");
-      setStatus("AI 终端已结束");
-      terminal?.writeln("\r\n[会话已结束]");
-      notifyAvailabilityChange();
+      if (message.id === activeSessionId) {
+        sessionState = "closed";
+        setSessionStatus("已结束");
+        setStatus("AI 终端已结束");
+        terminal?.writeln("\r\n[会话已结束]");
+        notifyAvailabilityChange();
+      }
       return;
     }
 
     if (message.type === "error") {
-      sessionState = "closed";
-      setSessionStatus("错误");
       setStatus("AI 终端错误");
+      if (message.id && message.id !== activeSessionId) return;
       terminal?.writeln(`\r\n[错误] ${message.message || "Agent 运行失败。"}`);
       notifyAvailabilityChange();
     }
+  }
+
+  function renderSessionTabs() {
+    if (!tabsBar) return;
+    tabsBar.replaceChildren();
+    for (const session of sessions) {
+      const tab = document.createElement("div");
+      tab.className = "agent-session-tab" + (session.id === activeSessionId ? " is-active" : "");
+      tab.title = session.command || session.agent;
+
+      const star = document.createElement("span");
+      star.className = "tab-star";
+      star.textContent = session.id === primaryId ? "★" : "☆";
+      star.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (session.id !== primaryId) sendSocket({ type: "set_primary_session", id: session.id });
+      });
+
+      const dot = document.createElement("span");
+      dot.className = `tab-status-dot is-${session.status}`;
+
+      const name = document.createElement("span");
+      name.className = "tab-name";
+      name.textContent = session.name;
+      name.addEventListener("dblclick", (event) => {
+        event.stopPropagation();
+        beginRenameTab(session, name);
+      });
+
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "tab-close";
+      close.textContent = "×";
+      close.title = "删除会话";
+      close.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (window.confirm(`删除会话「${session.name}」会终止其 Agent 进程，确定吗？`)) {
+          sendSocket({ type: "delete_session", id: session.id });
+        }
+      });
+
+      tab.append(star, dot, name, close);
+      tab.addEventListener("click", () => {
+        if (session.id === activeSessionId) return;
+        switchToSession(session.id);
+      });
+      tabsBar.appendChild(tab);
+    }
+
+    const newButton = document.createElement("button");
+    newButton.type = "button";
+    newButton.className = "agent-session-tab-new";
+    newButton.textContent = "+ 新建";
+    newButton.addEventListener("click", () => {
+      showSessionPicker();
+    });
+    tabsBar.appendChild(newButton);
+  }
+
+  function renderStatusBar() {
+    if (!statusBar) return;
+    const primary = sessions.find((s) => s.id === primaryId);
+    const active = sessions.find((s) => s.id === activeSessionId);
+    if (!primary && !active) {
+      statusBar.textContent = "暂无 Agent 会话，点击右上角「+ 新建」创建一个";
+      return;
+    }
+    if (!primary) {
+      statusBar.textContent = `无主会话 · 当前查看：${active?.name || "-"}`;
+      return;
+    }
+    statusBar.textContent = `主会话：${primary.name}（${primary.status}） · 当前查看：${active?.name || "-"}`;
+  }
+
+  function switchToSession(id) {
+    if (activeSessionId) sendSocket({ type: "detach_session", id: activeSessionId });
+    activeSessionId = null;
+    sendSocket({ type: "attach_session", id });
+  }
+
+  function showSessionPicker() {
+    selectView.hidden = false;
+    sessionView.hidden = true;
+    sessionState = null;
+    notifyAvailabilityChange();
+  }
+
+  function beginRenameTab(session, nameElement) {
+    if (renamingSessionId) return;
+    renamingSessionId = session.id;
+    const input = document.createElement("input");
+    input.value = session.name;
+    input.className = "tab-rename-input";
+    nameElement.replaceWith(input);
+    input.focus();
+    input.select();
+    const finish = (commit) => {
+      if (renamingSessionId !== session.id) return;
+      renamingSessionId = null;
+      const newName = input.value.trim();
+      if (commit && newName && newName !== session.name) {
+        sendSocket({ type: "rename_session", id: session.id, name: newName });
+      } else {
+        input.replaceWith(nameElement);
+      }
+    };
+    input.addEventListener("blur", () => finish(true));
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") { event.preventDefault(); finish(true); }
+      if (event.key === "Escape") { event.preventDefault(); finish(false); }
+    });
   }
 
   function clearSession() {
@@ -342,7 +543,7 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     cocoInputEditing = false;
     hideCocoCaret();
-    sendSocket({ type: "terminal_input", data: "\x03" });
+    sendSocket({ type: "terminal_input", id: activeSessionId, data: "\x03" });
     setSessionStatus("已发送停止信号");
     terminal?.focus();
   }
@@ -364,26 +565,9 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       return;
     }
 
-    if (!lastLaunchTarget?.agent || !agents[lastLaunchTarget.agent]) {
-      setStatus("没有可重新连接的 Agent");
-      sessionState = null;
-      renderCurrentState();
-      notifyAvailabilityChange();
-      return;
-    }
-
-    if (lastLaunchTarget.agent === "custom" && !lastLaunchTarget.command) {
-      setStatus("缺少自定义 Agent 命令");
-      sessionState = null;
-      renderCurrentState();
-      customForm.hidden = false;
-      customCommandInput.focus();
-      notifyAvailabilityChange();
-      return;
-    }
-
-    terminal?.writeln("\r\n[重新连接] 正在重新启动上一次 Agent 会话...");
-    startSession(lastLaunchTarget.agent, { command: lastLaunchTarget.command });
+    terminal?.writeln("\r\n[重新连接] 正在连接共享 Agent 会话...");
+    stopSocket();
+    connectSocket();
   }
 
   function restartSession() {
@@ -429,6 +613,7 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   function dispatchPrompt(prompt) {
     const availability = canDispatchToAgent();
     if (!availability.ok) return availability;
+    if (!primaryId) return { ok: false, reason: "no-primary", message: "尚未设置主会话" };
 
     const text = String(prompt || "").trim();
     if (!text) {
@@ -436,10 +621,10 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     }
 
     const dispatchSocket = socket;
-    sendSocket({ type: "terminal_input", data: text });
+    sendSocket({ type: "terminal_input", id: primaryId, data: text });
     window.setTimeout(() => {
       if (socket !== dispatchSocket || socket?.readyState !== WebSocket.OPEN) return;
-      socket.send(JSON.stringify({ type: "terminal_input", data: "\r" }));
+      socket.send(JSON.stringify({ type: "terminal_input", id: primaryId, data: "\r" }));
       requestCursorRestore();
     }, dispatchSubmitDelayMs);
     requestCursorRestore();
@@ -517,8 +702,7 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   }
 
   function stopSocket() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: "stop_session" }));
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
       socket.close();
     }
     socket = null;
@@ -550,7 +734,7 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     }
 
     const dimensions = getTerminalDimensions();
-    sendSocket({ type: "resize", cols: dimensions.cols, rows: dimensions.rows });
+    sendSocket({ type: "resize", id: activeSessionId, cols: dimensions.cols, rows: dimensions.rows });
     scheduleCocoCaretUpdate();
   }
 
@@ -847,9 +1031,10 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   }
 
   function sendSocket(message) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(message));
-    }
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const needsActiveId = ["terminal_input", "resize", "interrupt", "detach_session", "attach_session", "delete_session", "rename_session", "set_primary_session"].includes(message.type);
+    if (needsActiveId && (message.id === undefined || message.id === null)) return;
+    socket.send(JSON.stringify(message));
   }
 
   function setSessionStatus(status) {
@@ -870,9 +1055,15 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       const target = sessionView || page || document.documentElement;
       const request = target.requestFullscreen?.();
       if (request?.then) {
-        request.then(lockFullscreenEscape).catch(() => {});
+        request
+          .then(() => {
+            lockFullscreenEscape();
+            refitFullscreenTerminal();
+          })
+          .catch(() => {});
       } else {
         lockFullscreenEscape();
+        refitFullscreenTerminal();
       }
     } else if (document.fullscreenElement) {
       unlockFullscreenEscape();
@@ -881,11 +1072,15 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     } else {
       unlockFullscreenEscape();
     }
-    scheduleFit();
+    if (!active) scheduleFit();
   }
 
   function syncFullscreenState() {
     const isFullscreen = Boolean(document.fullscreenElement);
+    if (isFullscreen && document.body.classList.contains("terminal-view-fullscreen")) {
+      refitFullscreenTerminal();
+      return;
+    }
     if (!isFullscreen && document.body.classList.contains("terminal-view-fullscreen")) {
       document.body.classList.remove("terminal-view-fullscreen");
       if (fullscreenButton) fullscreenButton.textContent = "全屏";
@@ -894,13 +1089,25 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     }
   }
 
+  function refitFullscreenTerminal() {
+    scheduleFit(() => {
+      terminal?.focus();
+      scheduleCocoCaretUpdate();
+    });
+    window.setTimeout(() => {
+      fitAndResize();
+      terminal?.focus();
+      scheduleCocoCaretUpdate();
+    }, 80);
+  }
+
   function handleFullscreenKeydown(event) {
     if (!document.body.classList.contains("terminal-view-fullscreen")) return;
     if (event.key !== "Escape") return;
     event.preventDefault();
     event.stopPropagation();
     if (shouldRouteEscapeToTerminal()) {
-      sendSocket({ type: "terminal_input", data: "\x1b" });
+      sendSocket({ type: "terminal_input", id: activeSessionId, data: "\x1b" });
       terminal?.focus();
       scheduleCocoCaretUpdate();
       return;
