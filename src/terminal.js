@@ -315,13 +315,26 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     if (message.type === "sessions_list") {
       sessions = Array.isArray(message.sessions) ? message.sessions : [];
       primaryId = message.primaryId || null;
-      if (activeSessionId && !sessions.find((s) => s.id === activeSessionId)) {
-        activeSessionId = null;
-        sessionState = null;
-        selectedAgent = "";
-        customCommand = "";
-        selectView.hidden = false;
-        sessionView.hidden = true;
+      const activeStillExists = activeSessionId && sessions.some((s) => s.id === activeSessionId);
+      if (!activeStillExists) {
+        if (sessions.length === 0) {
+          activeSessionId = null;
+          sessionState = null;
+          selectedAgent = "";
+          customCommand = "";
+          try { localStorage.removeItem("workflow-active-session-id"); } catch {}
+          selectView.hidden = false;
+          sessionView.hidden = true;
+        } else {
+          const fallbackId = primaryId && sessions.some((s) => s.id === primaryId)
+            ? primaryId
+            : sessions[0].id;
+          if (activeSessionId !== fallbackId) {
+            if (activeSessionId) sendSocket({ type: "detach_session", id: activeSessionId });
+            activeSessionId = null;
+            sendSocket({ type: "attach_session", id: fallbackId });
+          }
+        }
       }
       renderSessionTabs();
       renderStatusBar();
@@ -330,6 +343,10 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     }
 
     if (message.type === "session_started") {
+      if (message.id === activeSessionId && sessionState === "running") {
+        notifyAvailabilityChange();
+        return;
+      }
       activeSessionId = message.id;
       selectedAgent = message.agent;
       customCommand = message.agent === "custom" ? String(message.command || "") : "";
@@ -352,6 +369,10 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     }
 
     if (message.type === "session_attached") {
+      if (message.id === activeSessionId && sessionState === "running") {
+        notifyAvailabilityChange();
+        return;
+      }
       activeSessionId = message.id;
       selectedAgent = message.agent;
       customCommand = message.agent === "custom" ? String(message.command || "") : "";
@@ -414,7 +435,14 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
 
     if (message.type === "error") {
       setStatus("AI 终端错误");
-      if (message.id && message.id !== activeSessionId) return;
+      // attach 失败：清掉 localStorage 里的 stale id，避免下次刷新还命中
+      if (message.id) {
+        try {
+          const stored = localStorage.getItem("workflow-active-session-id");
+          if (stored && stored === message.id) localStorage.removeItem("workflow-active-session-id");
+        } catch {}
+      }
+      if (message.id && activeSessionId && message.id !== activeSessionId) return;
       terminal?.writeln(`\r\n[错误] ${message.message || "Agent 运行失败。"}`);
       notifyAvailabilityChange();
     }
@@ -499,6 +527,10 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   }
 
   function showSessionPicker() {
+    if (activeSessionId) {
+      sendSocket({ type: "detach_session", id: activeSessionId });
+      activeSessionId = null;
+    }
     selectView.hidden = false;
     sessionView.hidden = true;
     sessionState = null;
@@ -610,10 +642,26 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     return { ok: true, agent: selectedAgent, label: getAgentDisplayLabel() };
   }
 
+  function canDispatchToPrimary() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      return { ok: false, reason: "socket-not-open", message: "Agent 连接不可用" };
+    }
+    if (!primaryId) {
+      return { ok: false, reason: "no-primary", message: "尚未设置主会话" };
+    }
+    const primary = sessions.find((s) => s.id === primaryId);
+    if (!primary) {
+      return { ok: false, reason: "no-primary", message: "主会话不存在" };
+    }
+    if (primary.status !== "running") {
+      return { ok: false, reason: "closed", message: `主会话「${primary.name}」不可用` };
+    }
+    return { ok: true, agent: primary.agent, label: primary.name, primary };
+  }
+
   function dispatchPrompt(prompt) {
-    const availability = canDispatchToAgent();
+    const availability = canDispatchToPrimary();
     if (!availability.ok) return availability;
-    if (!primaryId) return { ok: false, reason: "no-primary", message: "尚未设置主会话" };
 
     const text = String(prompt || "").trim();
     if (!text) {
@@ -632,68 +680,69 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   }
 
   function getDispatchStatus() {
-    const availability = canDispatchToAgent();
-    const selectedLabel = getAgentDisplayLabel();
-    const title = getAgentStatusTitle(selectedLabel);
+    const availability = canDispatchToPrimary();
+    const primaryLabel = availability.primary?.name || "尚未设置主会话";
+    const active = sessions.find((s) => s.id === activeSessionId);
+    const activeName = active?.name || "无";
+    const baseTitle = availability.primary
+      ? `主会话：${primaryLabel}（${availability.primary.status}）\n当前查看：${activeName}`
+      : `当前查看：${activeName}`;
+
     if (availability.ok) {
+      const sameTab = active && active.id === availability.primary.id;
+      const text = sameTab
+        ? `${primaryLabel} 可用`
+        : `${primaryLabel} 可用 · 查看 ${activeName}`;
       return {
-        ...availability,
+        ok: true,
+        agent: availability.agent,
+        label: availability.label,
         tone: "available",
-        text: `${availability.label} 可用`,
-        ariaLabel: `Agent 状态：${availability.label} 可用`,
-        title,
+        text,
+        ariaLabel: `Agent 状态：${text}`,
+        title: baseTitle,
       };
     }
 
-    if (availability.reason === "starting") {
+    if (availability.reason === "no-primary") {
       return {
-        ...availability,
-        tone: "starting",
-        label: selectedLabel,
-        text: `${selectedLabel} 启动中`,
-        ariaLabel: `Agent 状态：${selectedLabel} 启动中`,
-        title,
-      };
-    }
-
-    if (availability.reason === "unsupported-agent") {
-      return {
-        ...availability,
-        tone: "unsupported",
-        label: selectedLabel,
-        text: `${selectedLabel} 不可派发`,
-        ariaLabel: `Agent 状态：${selectedLabel} 不可用于评论派发`,
-        title,
+        ok: false,
+        reason: "no-primary",
+        tone: "idle",
+        text: "尚未设置主会话",
+        ariaLabel: "Agent 状态：尚未设置主会话",
+        title: baseTitle,
       };
     }
 
     if (availability.reason === "socket-not-open") {
       return {
-        ...availability,
+        ok: false,
+        reason: "socket-not-open",
         tone: "error",
-        label: selectedLabel,
-        text: `${selectedLabel} 连接不可用`,
-        ariaLabel: `Agent 状态：${selectedLabel} 连接不可用`,
-        title,
+        text: "Agent 连接不可用",
+        ariaLabel: "Agent 状态：连接不可用",
+        title: baseTitle,
       };
     }
 
     if (availability.reason === "closed") {
       return {
-        ...availability,
+        ok: false,
+        reason: "closed",
         tone: "unavailable",
-        label: selectedLabel,
-        text: `${selectedLabel} 不可用`,
-        ariaLabel: `Agent 状态：${selectedLabel} 不可用`,
-        title,
+        text: `${primaryLabel} 不可用`,
+        ariaLabel: `Agent 状态：${primaryLabel} 不可用`,
+        title: baseTitle,
       };
     }
 
     return {
-      ...availability,
+      ok: false,
       tone: "idle",
       text: "无可用 Agent",
       ariaLabel: "Agent 状态：无可用 Agent",
+      title: baseTitle,
     };
   }
 
