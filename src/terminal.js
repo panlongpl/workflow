@@ -41,6 +41,8 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
   let cocoSlashCommandSelectedCommand = "";
   let suppressTerminalData = false;
   let tabsBar = null;
+  let existingSessionsBox = null;
+  let existingSessionsList = null;
   let sessions = [];
   let primaryId = null;
   let activeSessionId = null;
@@ -90,6 +92,10 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
             <button class="custom-agent-submit" type="submit">启动</button>
           </div>
         </form>
+        <div class="agent-existing-sessions" data-agent-existing-sessions hidden>
+          <div class="agent-existing-title">进入已有会话</div>
+          <div class="agent-existing-list" data-agent-existing-list></div>
+        </div>
       </section>
 
       <section class="agent-session-panel" data-agent-session hidden>
@@ -109,6 +115,9 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
     customCommandInput = element.querySelector("#customAgentCommand");
     cocoCaret = element.querySelector("[data-coco-caret]");
     tabsBar = element.querySelector("[data-agent-session-tabs]");
+    existingSessionsBox = element.querySelector("[data-agent-existing-sessions]");
+    existingSessionsList = element.querySelector("[data-agent-existing-list]");
+    renderExistingSessions();
 
     element.querySelectorAll("[data-agent]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -334,6 +343,7 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
         }
       }
       renderSessionTabs();
+      renderExistingSessions();
       notifyAvailabilityChange();
       return;
     }
@@ -441,6 +451,59 @@ export function createTerminalController({ getCwd, fullscreenButton, setStatus, 
       if (message.id && activeSessionId && message.id !== activeSessionId) return;
       terminal?.writeln(`\r\n[错误] ${message.message || "Agent 运行失败。"}`);
       notifyAvailabilityChange();
+    }
+  }
+
+  function renderExistingSessions() {
+    if (!existingSessionsBox || !existingSessionsList) return;
+    existingSessionsList.replaceChildren();
+    if (!sessions.length) {
+      existingSessionsBox.hidden = true;
+      return;
+    }
+    existingSessionsBox.hidden = false;
+    for (const session of sessions) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "agent-existing-item";
+      item.title = session.command || session.agent;
+
+      const star = document.createElement("span");
+      star.className = "tab-star";
+      star.textContent = session.id === primaryId ? "★" : "☆";
+
+      const dot = document.createElement("span");
+      dot.className = `tab-status-dot is-${session.status}`;
+
+      const name = document.createElement("span");
+      name.className = "agent-existing-name";
+      name.textContent = session.name;
+
+      const meta = document.createElement("span");
+      meta.className = "agent-existing-meta";
+      meta.textContent = session.agent + (session.status !== "running" ? ` · ${session.status}` : "");
+
+      item.append(star, dot, name, meta);
+      item.addEventListener("click", () => {
+        if (activeSessionId === session.id && sessionState === "running") return;
+        if (activeSessionId && activeSessionId !== session.id) {
+          sendSocket({ type: "detach_session", id: activeSessionId });
+        }
+        activeSessionId = null;
+        sessionState = "starting";
+        selectedAgent = session.agent;
+        customCommand = session.agent === "custom" ? String(session.command || "") : "";
+        showCocoCaret = shouldUseCocoCaret(selectedAgent, customCommand);
+        selectView.hidden = true;
+        sessionView.hidden = false;
+        ensureTerminal();
+        terminal.reset();
+        terminal.writeln(`正在连接 ${session.name}...`);
+        sendSocket({ type: "attach_session", id: session.id });
+        scheduleFit();
+        notifyAvailabilityChange();
+      });
+      existingSessionsList.appendChild(item);
     }
   }
 

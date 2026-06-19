@@ -49,9 +49,11 @@ function renderTreeNode(node, state, onOpenFile, isRoot = false, pathParts = [])
 
   if (!isRoot) {
     const directoryPath = pathParts.join("/");
+    const renderedForSearch = Boolean(state.query);
     const details = document.createElement("details");
-    details.open = Boolean(state.query) || state.expandedDirs.has(directoryPath);
+    details.open = renderedForSearch || state.expandedDirs.has(directoryPath);
     details.addEventListener("toggle", () => {
+      if (renderedForSearch) return;
       if (details.open) {
         state.expandedDirs.add(directoryPath);
       } else {

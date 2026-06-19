@@ -1,7 +1,10 @@
 async function parseJsonResponse(response, fallbackError) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload.error || fallbackError);
+    const error = new Error(payload.error || fallbackError);
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
   }
   return payload;
 }
@@ -60,4 +63,14 @@ export async function deleteAnnotationRecord(rootPath, path, id) {
 export async function readAnnotationHistory() {
   const response = await fetch("/api/annotations/all");
   return parseJsonResponse(response, "无法读取历史注释。");
+}
+
+export async function readAgentStatus() {
+  const response = await fetch("/api/agent-status");
+  return parseJsonResponse(response, "无法读取 Agent 状态。");
+}
+
+export async function readBookmarkletConfig() {
+  const response = await fetch("/api/bookmarklet-config");
+  return parseJsonResponse(response, "无法读取测试反馈工具配置。");
 }

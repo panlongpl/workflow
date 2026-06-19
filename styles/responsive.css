@@ -1,6 +1,7 @@
 @media (max-width: 640px) {
   .app {
     grid-template-columns: 1fr;
+    padding: 0;
   }
 
   .resizer {
@@ -11,11 +12,24 @@
     max-height: 48vh;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+    border-radius: 0;
   }
 
   .viewer-header {
     position: static;
     min-height: auto;
+  }
+
+  .viewer-header::after {
+    display: none;
+  }
+
+  .viewer {
+    height: auto;
+    min-height: 52vh;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
   }
 
   .header-identity-row {
@@ -75,7 +89,13 @@
 
   .markdown-body {
     min-height: auto;
-    padding: 22px;
+    margin: 12px;
+    padding: 26px 22px 42px;
+    border-radius: var(--radius-md);
+  }
+
+  .viewer.outline-visible .markdown-body {
+    padding-right: 22px;
   }
 
   .history-body {
@@ -101,6 +121,7 @@
 
   .agent-terminal-card {
     min-height: 520px;
+    border-radius: var(--radius-md);
   }
 
   .history-header,
@@ -195,5 +216,12 @@
     right: 14px;
     bottom: 62px;
     max-width: none;
+  }
+
+  .annotation-drawer {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    border-radius: var(--radius-md);
   }
 }

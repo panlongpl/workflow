@@ -54,7 +54,8 @@ export function initResizableSidebar(els) {
 
   els.resizer.addEventListener("pointermove", (event) => {
     if (!els.app.classList.contains("resizing")) return;
-    const width = setSidebarWidth(event.clientX);
+    const appLeft = els.app.getBoundingClientRect().left;
+    const width = setSidebarWidth(event.clientX - appLeft);
     localStorage.setItem("markdown-viewer-sidebar-width", String(width));
   });
 
@@ -72,7 +73,7 @@ export function initResizableSidebar(els) {
 
 function setSidebarWidth(width) {
   const maxWidth = Math.min(620, Math.round(window.innerWidth * 0.55));
-  const nextWidth = Math.max(280, Math.min(width, maxWidth));
+  const nextWidth = Math.max(300, Math.min(width, maxWidth));
   document.documentElement.style.setProperty("--sidebar-width", `${nextWidth}px`);
   return nextWidth;
 }

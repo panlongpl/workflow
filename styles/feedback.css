@@ -4,22 +4,23 @@
   z-index: 20;
   display: none;
   place-items: center;
-  background: rgba(246, 247, 244, 0.72);
-  backdrop-filter: blur(4px);
+  background: rgba(237, 244, 248, 0.72);
+  backdrop-filter: blur(10px);
 }
 
 .toast {
   position: absolute;
-  right: 18px;
-  bottom: 74px;
+  right: 28px;
+  bottom: 84px;
   z-index: 4;
   min-width: 280px;
   max-width: min(420px, calc(100% - 36px));
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 16px 40px rgba(31, 41, 51, 0.14);
-  padding: 12px;
+  border: 1px solid rgba(203, 217, 226, 0.92);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-md);
+  padding: 14px;
   display: none;
   gap: 10px;
 }
@@ -40,7 +41,7 @@
 .toast-message {
   color: var(--ink);
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.55;
 }
 
 .toast-actions {
@@ -51,23 +52,206 @@
 
 .bottom-jump {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
+  right: 28px;
+  bottom: 28px;
   z-index: 3;
-  box-shadow: 0 10px 24px rgba(31, 41, 51, 0.13);
+  box-shadow: var(--shadow-sm);
 }
 
 .app.loading .loading-overlay {
   display: grid;
 }
 
+.bookmarklet-page {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 34px 20px 52px;
+  display: grid;
+  gap: 18px;
+}
+
+.bookmarklet-card {
+  border: 1px solid rgba(203, 217, 226, 0.92);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-sm);
+  padding: 22px;
+}
+
+.bookmarklet-hero {
+  background:
+    radial-gradient(circle at 0 0, rgba(143, 209, 223, 0.24), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(238, 246, 250, 0.92));
+}
+
+.bookmarklet-eyebrow {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bookmarklet-card h2,
+.bookmarklet-card h3,
+.bookmarklet-card p {
+  margin: 0;
+}
+
+.bookmarklet-card h2 {
+  margin-top: 8px;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+
+.bookmarklet-card h3 {
+  color: var(--ink-strong);
+  font-size: 17px;
+}
+
+.bookmarklet-card p {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.bookmarklet-info-card,
+.bookmarklet-install-card,
+.bookmarklet-steps-card {
+  display: grid;
+  gap: 14px;
+}
+
+.bookmarklet-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(203, 217, 226, 0.72);
+  border-radius: var(--radius-md);
+  background: rgba(248, 251, 253, 0.86);
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.bookmarklet-info-row strong {
+  color: var(--ink);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.bookmarklet-status {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.96);
+  color: var(--muted-strong);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  max-width: min(360px, 64%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookmarklet-status.is-available {
+  border-color: rgba(15, 138, 99, 0.26);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.bookmarklet-status.is-error,
+.bookmarklet-status.is-unavailable {
+  border-color: rgba(180, 35, 24, 0.2);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.bookmarklet-status.is-loading {
+  border-color: rgba(217, 119, 6, 0.24);
+  background: rgba(255, 251, 235, 0.96);
+  color: #b45309;
+}
+
+.bookmarklet-refresh-button {
+  justify-self: end;
+}
+
+.bookmarklet-install-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bookmarklet-install-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  border: 1px solid rgba(42, 111, 151, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3a8bb5, var(--accent));
+  color: #fff;
+  padding: 0 22px;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: 0 12px 26px rgba(42, 111, 151, 0.2);
+  cursor: grab;
+}
+
+.bookmarklet-install-button:hover {
+  background: linear-gradient(135deg, #4a9cc6, var(--accent-strong));
+  transform: translateY(-1px);
+}
+
+.bookmarklet-copy-button {
+  min-height: 46px;
+  padding-inline: 16px;
+}
+
+.bookmarklet-copy-userscript-button {
+  min-height: 46px;
+  padding-inline: 16px;
+}
+
+.bookmarklet-userscript-match {
+  min-height: 46px;
+  min-width: min(320px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  padding: 0 16px;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.bookmarklet-userscript-match:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.bookmarklet-steps-card ol {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--ink);
+  line-height: 1.85;
+}
+
 .loading-panel {
   min-width: 240px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 20px 22px;
-  box-shadow: 0 18px 54px rgba(31, 41, 51, 0.14);
+  border: 1px solid rgba(203, 217, 226, 0.92);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 24px 26px;
+  box-shadow: var(--shadow-lg);
   display: grid;
   justify-items: center;
   gap: 12px;

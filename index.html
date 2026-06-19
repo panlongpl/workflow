@@ -19,11 +19,11 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="title-row">
-            <h1>Markdown 浏览</h1>
+            <h1>Workflow Cockpit</h1>
           </div>
-          <div class="path" id="currentPath">尚未选择目录</div>
-          <button class="choose-button" id="chooseDir" type="button">选择本地目录</button>
-          <input class="search" id="search" type="search" placeholder="筛选 md 文件" />
+          <div class="path" id="currentPath">等待连接本地工作区</div>
+          <button class="choose-button" id="chooseDir" type="button">连接本地目录</button>
+          <input class="search" id="search" type="search" placeholder="搜索任务文档 / Markdown" />
         </div>
         <nav class="nav" aria-label="Markdown 文件导航">
           <section class="nav-section">
@@ -54,14 +54,15 @@
             </div>
             <div class="header-global-controls">
               <div class="module-switch" aria-label="应用模块">
-                <button class="module-button active" id="markdownModule" type="button">Markdown 浏览</button>
+                <button class="module-button active" id="markdownModule" type="button">文档工作台</button>
                 <button class="module-button" id="terminalModule" type="button">AI 终端</button>
+                <button class="module-button" id="feedbackModule" type="button">测试反馈</button>
               </div>
               <div class="agent-availability is-idle" id="agentAvailability" role="status" aria-live="polite" aria-label="Agent 状态：无可用 Agent" title="当前没有可用的 Agent">
                 <span class="agent-availability-dot" aria-hidden="true"></span>
                 <span class="agent-availability-text" id="agentAvailabilityText">无可用 Agent</span>
               </div>
-              <div class="status" id="status">HTML 预览</div>
+              <div class="status" id="status">就绪</div>
             </div>
           </div>
           <div class="header-toolbar-row">
@@ -70,7 +71,7 @@
                 <button class="view-button active" id="rawView" type="button">原文</button>
                 <button class="view-button" id="aiView" type="button">AI 阅读版</button>
               </div>
-              <button class="jump-button history-action" id="historyView" type="button">历史注释</button>
+              <button class="jump-button history-action" id="historyView" type="button">注释队列</button>
               <label class="mode-switch" for="readingMode">
                 <span>阅读模式</span>
                 <select id="readingMode">
@@ -89,11 +90,11 @@
             </div>
             <div class="history-toolbar-slot" id="historyToolbarSlot" aria-label="历史注释操作"></div>
             <div class="terminal-header-actions" id="terminalHeaderActions">
-              <button class="jump-button" id="terminalClear" type="button">清空</button>
-              <button class="jump-button" id="terminalStop" type="button">停止</button>
-              <button class="jump-button" id="terminalFullscreen" type="button">全屏</button>
-              <button class="jump-button" id="terminalReconnect" type="button">重新连接</button>
               <button class="jump-button" id="terminalRestart" type="button">新会话</button>
+              <button class="jump-button" id="terminalFullscreen" type="button">全屏</button>
+              <button class="jump-button" id="terminalStop" type="button">停止</button>
+              <button class="jump-button" id="terminalClear" type="button">清空</button>
+              <button class="jump-button" id="terminalReconnect" type="button">重新连接</button>
             </div>
           </div>
         </header>
@@ -128,8 +129,8 @@
         <div class="content-shell" id="contentShell">
           <div class="empty">
             <div class="empty-card">
-              <h2>选择一个本地目录</h2>
-              <p>左侧会生成两个入口：最近更新按 Markdown 文件更新时间倒序排列，目录结构保留原始层级。</p>
+              <h2>连接一个本地工作区</h2>
+              <p>选择目录后，在这里阅读 Markdown、记录关键片段，并把上下文发送给当前 Agent。</p>
               <p class="notice" id="supportNotice"></p>
             </div>
           </div>

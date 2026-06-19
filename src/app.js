@@ -4,6 +4,8 @@ import {
   generateAiReading,
   readAnnotationHistory,
   readAnnotations,
+  readAgentStatus,
+  readBookmarkletConfig,
   readDirectorySnapshot,
   readMarkdownFile,
   saveAnnotationRecord,
@@ -20,6 +22,7 @@ import {
   setLoading as setLoadingState,
 } from "./ui.js";
 import { createTerminalController } from "./terminal.js";
+import { renderBookmarkletPage } from "./bookmarklet.js";
 import {
   createTreeNode,
   escapeHtml,
@@ -43,6 +46,7 @@ const state = {
   activePath: "",
   query: "",
   expandedDirs: new Set(),
+  searchExpandedDirsSnapshot: null,
   rootPath: "",
   currentFile: null,
   currentMarkdown: "",
@@ -105,6 +109,7 @@ const els = {
   historyView: document.querySelector("#historyView"),
   markdownModule: document.querySelector("#markdownModule"),
   terminalModule: document.querySelector("#terminalModule"),
+  feedbackModule: document.querySelector("#feedbackModule"),
   markdownControls: document.querySelector("#markdownControls"),
   historyToolbarSlot: document.querySelector("#historyToolbarSlot"),
   readingMode: document.querySelector("#readingMode"),
@@ -149,11 +154,12 @@ els.currentPath.textContent = "尚未选择目录";
 
 els.chooseDir.addEventListener("click", chooseDirectory);
 els.search.addEventListener("input", () => {
-  state.query = els.search.value.trim().toLowerCase();
+  updateSearchQuery(els.search.value);
   renderNavigation();
 });
 els.markdownModule.addEventListener("click", () => switchModule("markdown"));
 els.terminalModule.addEventListener("click", () => switchModule("terminal"));
+els.feedbackModule.addEventListener("click", () => switchModule("feedback"));
 els.rawView.addEventListener("click", () => switchView("raw"));
 els.aiView.addEventListener("click", () => {
   const aiErrored = Boolean(state.aiErrorPath) && state.currentFile && state.aiErrorPath === state.currentFile.path;
@@ -212,6 +218,11 @@ window.addEventListener("focus", () => {
 });
 
 async function switchModule(module) {
+  if (module === "feedback") {
+    renderFeedbackModule();
+    return;
+  }
+
   if (module === "terminal") {
     renderTerminalModule();
     return;
@@ -227,10 +238,13 @@ function setActiveModule(module) {
 
 function updateModuleControls() {
   els.app.classList.toggle("module-terminal", state.activeModule === "terminal");
+  els.app.classList.toggle("module-feedback", state.activeModule === "feedback");
   els.markdownModule.classList.toggle("active", state.activeModule === "markdown");
   els.terminalModule.classList.toggle("active", state.activeModule === "terminal");
+  els.feedbackModule.classList.toggle("active", state.activeModule === "feedback");
   els.markdownModule.setAttribute("aria-pressed", state.activeModule === "markdown" ? "true" : "false");
   els.terminalModule.setAttribute("aria-pressed", state.activeModule === "terminal" ? "true" : "false");
+  els.feedbackModule.setAttribute("aria-pressed", state.activeModule === "feedback" ? "true" : "false");
   renderAgentAvailability();
 }
 
@@ -296,6 +310,7 @@ async function loadDirectorySnapshot(snapshot) {
     state.activePath = "";
     state.rootPath = snapshot.rootPath;
     state.expandedDirs.clear();
+    state.searchExpandedDirsSnapshot = null;
     els.currentPath.textContent = snapshot.rootName || snapshot.rootPath;
     state.files = snapshot.files || [];
     state.tree = snapshot.tree || createTreeNode(snapshot.rootName || "已选择目录");
@@ -356,12 +371,34 @@ function renderNavigation() {
   renderNavigationView({ state, els, onOpenFile: openFile });
 }
 
+function updateSearchQuery(value) {
+  const nextQuery = value.trim().toLowerCase();
+  const wasSearching = Boolean(state.query);
+  const isSearching = Boolean(nextQuery);
+
+  if (!wasSearching && isSearching) {
+    state.searchExpandedDirsSnapshot = new Set(state.expandedDirs);
+  }
+
+  state.query = nextQuery;
+
+  if (wasSearching && !isSearching && state.searchExpandedDirsSnapshot) {
+    const restoredExpandedDirs = new Set(state.searchExpandedDirsSnapshot);
+    state.expandedDirs = restoredExpandedDirs;
+    state.searchExpandedDirsSnapshot = null;
+    queueMicrotask(() => {
+      if (!state.query) state.expandedDirs = new Set(restoredExpandedDirs);
+    });
+  }
+}
+
 function resetDirectoryState() {
   state.files = [];
   state.tree = null;
   state.activePath = "";
   state.rootPath = "";
   state.expandedDirs.clear();
+  state.searchExpandedDirsSnapshot = null;
   renderNavigation();
 }
 
@@ -559,6 +596,24 @@ function renderTerminalModule() {
   els.docPath.textContent = state.rootPath ? `${state.rootPath} · 交互会话` : "项目目录 · 交互会话";
   els.status.textContent = "AI 终端";
   terminalController.render(els.contentShell);
+}
+
+function renderFeedbackModule() {
+  setActiveModule("feedback");
+  hideSelectionRecord();
+  closeAnnotationDrawer();
+  documentPanel.clearDocumentOutline();
+  els.docName.textContent = "测试反馈";
+  els.docPath.textContent = "安装 Bookmarklet 到浏览器书签栏";
+  els.status.textContent = "测试反馈";
+  els.contentShell.replaceChildren();
+  renderBookmarkletPage(els.contentShell, {
+    readAgentStatus,
+    readBookmarkletConfig,
+    serviceOrigin: window.location.origin,
+    showToast,
+  });
+  scrollContentShellTo(els, "top", "auto");
 }
 
 function updateCurrentDocumentHeader() {

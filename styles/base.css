@@ -1,22 +1,48 @@
 :root {
   color-scheme: light;
-  --bg: #f6f7f4;
+  --bg: #edf4f8;
+  --bg-elevated: #f6f9fb;
   --panel: #ffffff;
-  --ink: #1f2933;
-  --muted: #68737d;
-  --line: #d9ded8;
-  --accent: #0f766e;
-  --accent-strong: #115e59;
-  --accent-soft: #e0f2ef;
-  --code-bg: #f0f3f2;
-  --warn: #b45309;
+  --paper: #fffdf8;
+  --ink: #162f43;
+  --ink-strong: #0d2435;
+  --muted: #657989;
+  --muted-strong: #4a5f6f;
+  --line: #cbd9e2;
+  --line-strong: #a9bfcc;
+  --accent: #2a6f97;
+  --accent-strong: #1e5879;
+  --accent-soft: #dceff7;
+  --accent-glow: rgba(42, 111, 151, 0.68);
+  --sidebar: #143447;
+  --sidebar-ink: #dcebf2;
+  --sidebar-muted: #90b4c7;
+  --sidebar-line: rgba(174, 207, 224, 0.22);
+  --dispatch: #e5a84b;
+  --dispatch-soft: #fff4dc;
+  --code-bg: #e8f0f4;
+  --warn: #b66b16;
   --danger: #b42318;
   --danger-soft: #fef3f2;
+  --success: #0f8a63;
+  --success-soft: #e3f8ee;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --shadow-sm: 0 10px 28px rgba(21, 49, 68, 0.08);
+  --shadow-md: 0 20px 54px rgba(21, 49, 68, 0.13);
+  --shadow-lg: 0 28px 80px rgba(21, 49, 68, 0.16);
   --sidebar-width: 360px;
   --recent-row-height: 58px;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-display: "Inter Tight", Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas,
+    monospace;
+  font-family:
+    var(--font-body);
 }
 
 * {
@@ -25,12 +51,32 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 72% 0%, rgba(143, 209, 223, 0.28), transparent 32rem),
+    linear-gradient(135deg, #eaf2f7 0%, var(--bg) 45%, #f8fbfc 100%);
   color: var(--ink);
   min-height: 100vh;
   overflow: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
-button {
+button,
+input,
+select,
+textarea {
   font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--accent-glow);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(229, 168, 75, 0.28);
+  color: var(--ink-strong);
 }

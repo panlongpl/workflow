@@ -8,6 +8,10 @@
   padding: 14px;
 }
 
+.app.module-terminal .ai-terminal-page {
+  padding: 0;
+}
+
 .ai-terminal-page [hidden] {
   display: none !important;
 }
@@ -157,16 +161,17 @@
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   align-items: stretch;
-  background: transparent;
+  background: #071724;
 }
 
 .agent-terminal-card {
-  border: 1px solid rgba(134, 163, 181, 0.28);
-  border-radius: 18px;
+  border: 0;
+  border-radius: 0;
   background: #071724;
   overflow: hidden;
-  box-shadow: 0 20px 54px rgba(8, 31, 48, 0.18);
+  box-shadow: none;
 }
 
 .agent-terminal-card {
@@ -175,29 +180,11 @@
   height: 100%;
   width: 100%;
   display: grid;
-  grid-template-rows: 38px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   position: relative;
 }
 
-.agent-terminal-card::before {
-  content: "Terminal";
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  border-bottom: 1px solid rgba(143, 209, 223, 0.13);
-  background:
-    radial-gradient(circle at 18px 50%, rgba(255, 107, 107, 0.82) 0 4px, transparent 5px),
-    radial-gradient(circle at 34px 50%, rgba(255, 209, 102, 0.82) 0 4px, transparent 5px),
-    radial-gradient(circle at 50px 50%, rgba(99, 210, 151, 0.82) 0 4px, transparent 5px),
-    rgba(255, 255, 255, 0.025);
-  color: rgba(220, 235, 242, 0.7);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  padding-left: 76px;
-  text-transform: uppercase;
-}
-
+.agent-terminal-card::before,
 .agent-terminal-card::after {
   content: none;
 }
@@ -419,4 +406,62 @@ body.terminal-view-fullscreen .app.module-terminal .agent-terminal-mount .xterm-
   padding: 5px 10px;
   font-size: 12px;
   cursor: pointer;
+}
+
+.agent-existing-sessions {
+  margin-top: 18px;
+  width: min(100%, 720px);
+  display: grid;
+  gap: 10px;
+  justify-self: center;
+  text-align: left;
+}
+
+.agent-existing-title {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.agent-existing-list {
+  display: grid;
+  gap: 8px;
+}
+
+.agent-existing-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.agent-existing-item:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.agent-existing-item .tab-star {
+  color: #b58800;
+}
+
+.agent-existing-name {
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-existing-meta {
+  color: var(--muted);
+  font-size: 12px;
 }
